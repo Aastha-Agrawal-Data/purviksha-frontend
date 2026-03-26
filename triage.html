@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purviksha — Triage Form</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>🚑 Purviksha</h1>
+      <span>EMT Triage Form</span>
+    </div>
+    <a href="index.html" style="margin-left: auto; color: #a0aec0;
+       text-decoration: none; font-size: 0.9rem;">← Back</a>
+  </div>
+
+  <div class="container" style="margin-top: 30px;">
+
+    <!-- STEP 1: FAST TRACK -->
+    <div class="card" id="step-fasttrack">
+      <div class="section-title">⚡ Step 1 — Fast Track Check</div>
+      <p style="color: #718096; margin-bottom: 16px; font-size: 0.9rem;">
+        Check if patient has any immediately life-threatening condition.
+      </p>
+
+      <div class="form-group">
+        <label>Fast Track Condition</label>
+        <select id="fast_track_reason" onchange="handleFastTrack()">
+          <option value="NONE">None — Proceed to ABCD Assessment</option>
+          <option value="CHEST_PAIN">Chest Pain with Radiation</option>
+          <option value="SEIZURE">Active Seizure</option>
+          <option value="UNCONSCIOUS">Unconscious</option>
+          <option value="STROKE">Sudden Onset Weakness (Stroke)</option>
+        </select>
+      </div>
+
+      <div id="fasttrack-alert" style="display:none; background:#fff5f5;
+           border: 1px solid #fc8181; border-radius: 6px; padding: 12px;
+           color: #c53030; font-weight: 600; margin-top: 8px;">
+        ⚠️ FAST TRACK RED — Skip ABCD. Proceed directly to submission.
+      </div>
+    </div>
+
+    <!-- STEP 2: PATIENT INFO -->
+    <div class="card">
+      <div class="section-title">👤 Step 2 — Patient Information</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Patient Name *</label>
+          <input type="text" id="patient_name" placeholder="Full name">
+          <span class="error-msg" id="err-name">Name is required</span>
+        </div>
+        <div class="form-group">
+          <label>Age *</label>
+          <input type="number" id="patient_age" placeholder="Age" min="0">
+          <span class="error-msg" id="err-age">Valid age is required</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Gender *</label>
+          <select id="patient_gender">
+            <option value="">Select gender</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
+          </select>
+          <span class="error-msg" id="err-gender">Gender is required</span>
+        </div>
+        <div class="form-group">
+          <label>Contact</label>
+          <input type="text" id="patient_contact" placeholder="Phone number">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="vulnerable_population"
+                 style="width:auto; margin-right: 8px;">
+          Vulnerable Population (Pregnant / Pediatric)
+        </label>
+      </div>
+    </div>
+
+    <!-- STEP 3: ABCD CLINICAL INPUTS -->
+    <div class="card" id="abcd-section">
+      <div class="section-title">🩺 Step 3 — ABCD Clinical Assessment</div>
+
+      <div class="form-group">
+        <label>A — Airway Status *</label>
+        <select id="airway_status">
+          <option value="PATENT">Patent (Clear)</option>
+          <option value="OBSTRUCTED">Obstructed</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>B — Respiratory Rate (breaths/min) *</label>
+          <input type="number" id="respiratory_rate"
+                 placeholder="Normal: 12-20" min="0" max="60">
+          <span class="error-msg" id="err-rr">Required</span>
+        </div>
+        <div class="form-group">
+          <label>B — SpO2 (%) *</label>
+          <input type="number" id="spo2"
+                 placeholder="Normal: ≥95" min="0" max="100">
+          <span class="error-msg" id="err-spo2">Required</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>C — Pulse Rate (bpm) *</label>
+          <input type="number" id="pulse_rate"
+                 placeholder="Normal: 60-100" min="0" max="250">
+          <span class="error-msg" id="err-pr">Required</span>
+        </div>
+        <div class="form-group">
+          <label>C — Systolic BP (mmHg) *</label>
+          <input type="number" id="sbp"
+                 placeholder="Normal: ≥90" min="0" max="300">
+          <span class="error-msg" id="err-sbp">Required</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>C — Capillary Refill Time *</label>
+          <select id="crt">
+            <option value="LESS_THAN_2">Less than 2 seconds (Normal)</option>
+            <option value="MORE_THAN_2">More than 2 seconds (Abnormal)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>D — AVPU Scale *</label>
+          <select id="avpu">
+            <option value="ALERT">Alert</option>
+            <option value="VOICE">Responds to Voice</option>
+            <option value="PAIN">Responds to Pain</option>
+            <option value="UNRESPONSIVE">Unresponsive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: AMBULANCE + HOSPITAL -->
+    <div class="card">
+      <div class="section-title">🏥 Step 4 — Dispatch Information</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Hospital *</label>
+          <select id="hospital_id">
+            <option value="">Loading hospitals...</option>
+          </select>
+          <span class="error-msg" id="err-hospital">Required</span>
+        </div>
+        <div class="form-group">
+          <label>ETA (minutes) *</label>
+          <input type="number" id="eta_minutes"
+                 placeholder="Estimated arrival" min="1" max="120">
+          <span class="error-msg" id="err-eta">Required</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>EMT ID *</label>
+          <input type="text" id="emt_id" placeholder="e.g. EMT001">
+          <span class="error-msg" id="err-emt">Required</span>
+        </div>
+        <div class="form-group">
+          <label>Vehicle Number *</label>
+          <input type="text" id="vehicle_number"
+                 placeholder="e.g. MH12-AB-1234">
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div style="text-align: center; margin-bottom: 40px;">
+      <button class="btn btn-primary" onclick="submitTriageForm()"
+              style="padding: 14px 48px; font-size: 1rem;">
+        Submit Triage →
+      </button>
+    </div>
+
+    <!-- RESULT -->
+    <div id="result-section" style="display:none;">
+      <div id="result-box" class="result-box">
+        <div id="result-label"></div>
+        <h2 id="result-severity"></h2>
+        <p id="result-score"
+           style="margin-top: 8px; font-size: 1rem;"></p>
+        <p id="result-fasttrack"
+           style="margin-top: 4px; font-size: 0.9rem;"></p>
+      </div>
+      <div style="text-align:center; margin-bottom: 40px;">
+        <button class="btn btn-primary" onclick="resetForm()">
+          New Triage
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    // Load hospitals on page load
+    window.onload = async () => {
+      try {
+        const hospitals = await getHospitals()
+        const select = document.getElementById('hospital_id')
+        select.innerHTML = '<option value="">Select hospital</option>'
+        hospitals.forEach(h => {
+          const opt = document.createElement('option')
+          opt.value = h._id || h.id
+          opt.textContent = h.hospital_name || h.hospitalName
+          select.appendChild(opt)
+        })
+      } catch (e) {
+        console.error('Failed to load hospitals', e)
+      }
+    }
+
+    // Handle fast track selection
+    function handleFastTrack() {
+      const val = document.getElementById('fast_track_reason').value
+      const alert = document.getElementById('fasttrack-alert')
+      const abcd = document.getElementById('abcd-section')
+      if (val !== 'NONE') {
+        alert.style.display = 'block'
+        abcd.style.opacity = '0.4'
+        abcd.style.pointerEvents = 'none'
+      } else {
+        alert.style.display = 'none'
+        abcd.style.opacity = '1'
+        abcd.style.pointerEvents = 'auto'
+      }
+    }
+
+    // Validation
+    function validate() {
+      let valid = true
+
+      const name = document.getElementById('patient_name').value.trim()
+      const age = document.getElementById('patient_age').value
+      const gender = document.getElementById('patient_gender').value
+      const rr = document.getElementById('respiratory_rate').value
+      const spo2 = document.getElementById('spo2').value
+      const pr = document.getElementById('pulse_rate').value
+      const sbp = document.getElementById('sbp').value
+      const hospital = document.getElementById('hospital_id').value
+      const eta = document.getElementById('eta_minutes').value
+      const emt = document.getElementById('emt_id').value.trim()
+      const fastTrack =
+        document.getElementById('fast_track_reason').value !== 'NONE'
+
+      const show = (id, condition) => {
+        const el = document.getElementById(id)
+        el.style.display = condition ? 'block' : 'none'
+        if (condition) valid = false
+      }
+
+      show('err-name', !name)
+      show('err-age', !age || age < 0)
+      show('err-gender', !gender)
+      show('err-hospital', !hospital)
+      show('err-eta', !eta)
+      show('err-emt', !emt)
+
+      if (!fastTrack) {
+        show('err-rr', !rr)
+        show('err-spo2', !spo2)
+        show('err-pr', !pr)
+        show('err-sbp', !sbp)
+      }
+
+      return valid
+    }
+
+    // Submit
+    async function submitTriageForm() {
+      if (!validate()) return
+
+      const fastTrackReason =
+        document.getElementById('fast_track_reason').value
+      const isFastTrack = fastTrackReason !== 'NONE'
+
+      // Create patient first
+      const patient = await createPatient({
+        name: document.getElementById('patient_name').value.trim(),
+        age: parseInt(document.getElementById('patient_age').value),
+        gender: document.getElementById('patient_gender').value,
+        contact: document.getElementById('patient_contact').value
+      })
+
+      const patientId = patient._id || patient.id
+
+      // Build triage payload
+      const payload = {
+        patient_id: patientId,
+        ambulance_id: '69c3c1e3c4db6892f75827e8',
+        hospital_id: document.getElementById('hospital_id').value,
+        airway_status: document.getElementById('airway_status').value,
+        respiratory_rate: parseInt(
+          document.getElementById('respiratory_rate').value) || 16,
+        spo2: parseFloat(
+          document.getElementById('spo2').value) || 98,
+        pulse_rate: parseInt(
+          document.getElementById('pulse_rate').value) || 80,
+        sbp: parseInt(document.getElementById('sbp').value) || 120,
+        crt: document.getElementById('crt').value,
+        avpu: document.getElementById('avpu').value,
+        fast_track: isFastTrack,
+        fast_track_reason: fastTrackReason,
+        vulnerable_population:
+          document.getElementById('vulnerable_population').checked,
+        eta_minutes: parseInt(document.getElementById('eta_minutes').value)
+      }
+
+      try {
+        const result = await submitTriage(payload)
+        showResult(result.data)
+      } catch (e) {
+        alert('Submission failed. Is the backend running?')
+      }
+    }
+
+    // Show result
+    function showResult(data) {
+      const severity = data.severity_level
+      const box = document.getElementById('result-box')
+      const section = document.getElementById('result-section')
+
+      box.className = `result-box ${severity}`
+      document.getElementById('result-severity').textContent = severity
+      document.getElementById('result-label').textContent =
+        severity === 'RED' ? '🔴 CRITICAL' :
+        severity === 'YELLOW' ? '🟡 URGENT' : '🟢 MINOR'
+      document.getElementById('result-score').textContent =
+        `Triage Score: ${data.total_score}`
+      document.getElementById('result-fasttrack').textContent =
+        data.fast_track ? `⚡ Fast Track: ${data.fast_track_reason}` : ''
+
+      section.style.display = 'block'
+      section.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    function resetForm() {
+      document.getElementById('result-section').style.display = 'none'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purviksha — Pre-Hospital Triage</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>🚑 Purviksha</h1>
+      <span>Pre-Hospital Digital Triage System</span>
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 40px;">
+
+    <div class="card" style="text-align: center; padding: 40px;">
+      <h2 style="font-size: 1.6rem; margin-bottom: 8px;">
+        Welcome to Purviksha
+      </h2>
+      <p style="color: #718096; margin-bottom: 32px;">
+        Select your role to continue
+      </p>
+
+      <div style="display: flex; gap: 20px; justify-content: center;">
+
+        <div class="card" style="width: 220px; cursor: pointer;
+             border: 2px solid #e2e8f0; transition: border 0.2s;"
+             onclick="window.location.href='triage.html'"
+             onmouseover="this.style.borderColor='#1a1a2e'"
+             onmouseout="this.style.borderColor='#e2e8f0'">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">🚑</div>
+          <h3 style="margin-bottom: 8px;">EMT</h3>
+          <p style="font-size: 0.85rem; color: #718096;">
+            Submit patient triage from the field
+          </p>
+        </div>
+
+        <div class="card" style="width: 220px; cursor: pointer;
+             border: 2px solid #e2e8f0; transition: border 0.2s;"
+             onclick="window.location.href='dashboard.html'"
+             onmouseover="this.style.borderColor='#1a1a2e'"
+             onmouseout="this.style.borderColor='#e2e8f0'">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">🏥</div>
+          <h3 style="margin-bottom: 8px;">Hospital</h3>
+          <p style="font-size: 0.85rem; color: #718096;">
+            View incoming patients on dashboard
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="background: #1a1a2e; color: white;">
+      <div style="display: flex; justify-content: space-around;
+                  text-align: center;">
+        <div>
+          <div style="font-size: 1.8rem; font-weight: 800;
+                      color: #fc8181;">RED</div>
+          <div style="font-size: 0.8rem; color: #a0aec0;">
+            Critical — Immediate
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 1.8rem; font-weight: 800;
+                      color: #f6e05e;">YELLOW</div>
+          <div style="font-size: 0.8rem; color: #a0aec0;">
+            Urgent — Delayed
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 1.8rem; font-weight: 800;
+                      color: #68d391;">GREEN</div>
+          <div style="font-size: 0.8rem; color: #a0aec0;">
+            Minor — Minimal
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
