@@ -166,16 +166,19 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>EMT ID *</label>
-          <input type="text" id="emt_id" placeholder="e.g. EMT001">
-          <span class="error-msg" id="err-emt">Required</span>
+            <label>Ambulance *</label>
+            <select id="ambulance_id">
+                <option value="">Loading ambulances...</option>
+            </select>
+            <span class="error-msg" id="err-ambulance">Required</span>
         </div>
         <div class="form-group">
-          <label>Vehicle Number *</label>
-          <input type="text" id="vehicle_number"
-                 placeholder="e.g. MH12-AB-1234">
+            <label>ETA (minutes) *</label>
+            <input type="number" id="eta_minutes"
+                placeholder="Estimated arrival" min="1" max="120">
+            <span class="error-msg" id="err-eta">Required</span>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- SUBMIT -->
@@ -209,20 +212,40 @@
   <script>
     // Load hospitals on page load
     window.onload = async () => {
-      try {
-        const hospitals = await getHospitals()
-        const select = document.getElementById('hospital_id')
-        select.innerHTML = '<option value="">Select hospital</option>'
-        hospitals.forEach(h => {
-          const opt = document.createElement('option')
-          opt.value = h._id || h.id
-          opt.textContent = h.hospital_name || h.hospitalName
-          select.appendChild(opt)
-        })
-      } catch (e) {
-        console.error('Failed to load hospitals', e)
-      }
-    }
+  // Load hospitals
+  try {
+    const hospitals = await getHospitals()
+    const hospitalSelect = document.getElementById('hospital_id')
+    hospitalSelect.innerHTML =
+      '<option value="">Select hospital</option>'
+    hospitals.forEach(h => {
+      const opt = document.createElement('option')
+      opt.value = h._id || h.id
+      opt.textContent = h.hospital_name || h.hospitalName
+      hospitalSelect.appendChild(opt)
+    })
+  } catch (e) {
+    console.error('Failed to load hospitals', e)
+  }
+
+  // Load ambulances
+  try {
+    const ambulances = await getAmbulances()
+    const ambulanceSelect = document.getElementById('ambulance_id')
+    ambulanceSelect.innerHTML =
+      '<option value="">Select ambulance</option>'
+    ambulances.forEach(a => {
+      const opt = document.createElement('option')
+      opt.value = a._id || a.id
+      opt.textContent =
+        `${a.vehicle_number || a.vehicleNumber} —
+         ${a.emt_name || a.emtName}`
+      ambulanceSelect.appendChild(opt)
+    })
+  } catch (e) {
+    console.error('Failed to load ambulances', e)
+  }
+}
 
     // Handle fast track selection
     function handleFastTrack() {
@@ -267,6 +290,8 @@
       show('err-age', !age || age < 0)
       show('err-gender', !gender)
       show('err-hospital', !hospital)
+      const ambulance = document.getElementById('ambulance_id').value
+      show('err-ambulance', !ambulance)
       show('err-eta', !eta)
       show('err-emt', !emt)
 
@@ -301,7 +326,7 @@
       // Build triage payload
       const payload = {
         patient_id: patientId,
-        ambulance_id: '69c3c1e3c4db6892f75827e8',
+        ambulance_id: document.getElementById('ambulance_id').value,
         hospital_id: document.getElementById('hospital_id').value,
         airway_status: document.getElementById('airway_status').value,
         respiratory_rate: parseInt(
