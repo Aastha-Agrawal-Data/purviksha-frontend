@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purviksha — Device Setup</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .setup-warning {
+      background: #fffbeb;
+      border: 1px solid #f6e05e;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      color: #b7791f;
+      margin-bottom: 20px;
+    }
+
+    .amb-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .amb-btn {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.15s, background 0.15s;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .amb-btn:active { transform: scale(0.98); }
+
+    .amb-btn.selected {
+      border-color: #1a1a2e;
+      background: #f0f4ff;
+    }
+
+    .amb-btn.selected .amb-check { opacity: 1; }
+
+    .amb-vehicle {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 3px;
+    }
+
+    .amb-emt {
+      font-size: 0.82rem;
+      color: #718096;
+    }
+
+    .amb-check {
+      font-size: 1.2rem;
+      color: #1a1a2e;
+      opacity: 0;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .current-assignment {
+      background: #f0fff4;
+      border: 1px solid #68d391;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #276749;
+      display: none;
+    }
+
+    .current-assignment strong { font-weight: 700; }
+
+    .grid-loading {
+      text-align: center;
+      padding: 24px;
+      color: #718096;
+      font-size: 0.9rem;
+    }
+
+    .success-box {
+      display: none;
+      background: #f0fff4;
+      border: 1px solid #68d391;
+      border-radius: 10px;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .success-box h3 {
+      color: #276749;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+
+    .success-box p {
+      color: #4a5568;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>⚙️ Device Setup</h1>
+      <span>Admin — One-Time Configuration</span>
+    </div>
+    <a href="index.html" style="margin-left: auto; color: #a0aec0;
+       text-decoration: none; font-size: 0.9rem;">← Back</a>
+  </div>
+
+  <div class="container" style="margin-top: 30px;">
+
+    <div class="setup-warning">
+      ⚠️ <strong>Admin only.</strong> Select the ambulance assigned to this device.
+      This setting persists until manually reset.
+    </div>
+
+    <!-- Current assignment (shown if already set) -->
+    <div class="current-assignment" id="currentAssignment">
+      ✅ Currently assigned: <strong id="currentLabel"></strong>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="resetDevice(); return false;"
+         style="color:#c53030; font-size:0.85rem;">Reset</a>
+    </div>
+
+    <!-- Success screen (shown after saving) -->
+    <div class="success-box" id="successBox">
+      <h3>✅ Device Configured</h3>
+      <p id="successText">This device is now assigned.</p>
+      <a href="index.html" class="btn btn-primary"
+         style="text-decoration:none; display:inline-block;">
+        Go to Home →
+      </a>
+    </div>
+
+    <!-- Ambulance selection -->
+    <div id="setupContent">
+      <div class="card">
+        <div class="section-title">🚑 Select This Device's Ambulance</div>
+        <div id="ambGrid">
+          <div class="grid-loading">Loading ambulances...</div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 40px;">
+        <button class="btn btn-primary" id="btnSave" type="button"
+                onclick="saveSetup()"
+                style="padding: 14px 48px; font-size: 1rem;
+                       opacity: 0.4; cursor: not-allowed;"
+                disabled>
+          Save Assignment →
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    const AMB_KEY   = 'purviksha_ambulance_id'
+    const AMB_LABEL = 'purviksha_ambulance_label'
+    let selectedAmbId    = null
+    let selectedAmbLabel = ''
+
+    window.onload = async () => {
+      // Show current assignment if exists
+      const existing = localStorage.getItem(AMB_KEY)
+      const existingLabel = localStorage.getItem(AMB_LABEL)
+      if (existing) {
+        document.getElementById('currentLabel').textContent =
+          existingLabel || existing
+        document.getElementById('currentAssignment').style.display = 'block'
+      }
+
+      await loadAmbulances()
+    }
+
+    async function loadAmbulances() {
+      const grid = document.getElementById('ambGrid')
+
+      try {
+        const ambulances = await getAmbulances()
+
+        if (!ambulances || ambulances.length === 0) {
+          grid.innerHTML =
+            '<div class="grid-loading">No ambulances registered.<br>' +
+            '<small>Add ambulances via POST /api/ambulances first.</small></div>'
+          return
+        }
+
+        const container = document.createElement('div')
+        container.className = 'amb-grid'
+
+        ambulances.forEach(function(a) {
+          const id      = a._id || a.id
+          const vehicle = a.vehicle_number || a.vehicleNumber || 'Unknown'
+          const emt     = a.emt_name || a.emtName || 'Unknown EMT'
+          const label   = vehicle + ' — ' + emt
+
+          const btn = document.createElement('button')
+          btn.className = 'amb-btn'
+          btn.type = 'button'
+          btn.innerHTML =
+            '<div>' +
+              '<div class="amb-vehicle">' + vehicle + '</div>' +
+              '<div class="amb-emt">' + emt + '</div>' +
+            '</div>' +
+            '<div class="amb-check">✓</div>'
+
+          btn.addEventListener('click', function() {
+            selectAmbulance(btn, id, label)
+          })
+
+          container.appendChild(btn)
+        })
+
+        grid.innerHTML = ''
+        grid.appendChild(container)
+
+      } catch(err) {
+        grid.innerHTML =
+          '<div class="grid-loading" style="color:#c53030;">' +
+          'Failed to load ambulances.<br>' +
+          '<small>Make sure the Node backend is running on port 5000.</small>' +
+          '</div>'
+      }
+    }
+
+    function selectAmbulance(btn, id, label) {
+      document.querySelectorAll('.amb-btn.selected')
+        .forEach(function(b) { b.classList.remove('selected') })
+
+      btn.classList.add('selected')
+      selectedAmbId    = id
+      selectedAmbLabel = label
+
+      var s = document.getElementById('btnSave')
+      s.disabled = false
+      s.style.opacity = '1'
+      s.style.cursor = 'pointer'
+    }
+
+    function saveSetup() {
+      if (!selectedAmbId) return
+
+      localStorage.setItem(AMB_KEY,   selectedAmbId)
+      localStorage.setItem(AMB_LABEL, selectedAmbLabel)
+
+      // Update current assignment display
+      document.getElementById('currentLabel').textContent = selectedAmbLabel
+      document.getElementById('currentAssignment').style.display = 'block'
+
+      // Show success
+      document.getElementById('setupContent').style.display = 'none'
+      document.getElementById('successText').textContent =
+        'This device is now assigned to: ' + selectedAmbLabel
+      document.getElementById('successBox').style.display = 'block'
+    }
+
+    function resetDevice() {
+      if (!confirm('Remove the current ambulance assignment from this device?')) return
+
+      localStorage.removeItem(AMB_KEY)
+      localStorage.removeItem(AMB_LABEL)
+
+      document.getElementById('currentAssignment').style.display = 'none'
+      document.getElementById('successBox').style.display = 'none'
+      document.getElementById('setupContent').style.display = 'block'
+
+      // Deselect grid
+      document.querySelectorAll('.amb-btn.selected')
+        .forEach(function(b) { b.classList.remove('selected') })
+      selectedAmbId    = null
+      selectedAmbLabel = ''
+
+      var s = document.getElementById('btnSave')
+      s.disabled = true
+      s.style.opacity = '0.4'
+      s.style.cursor = 'not-allowed'
+    }
+  </script>
+
+</body>
+</html>

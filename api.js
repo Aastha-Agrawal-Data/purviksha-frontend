@@ -1,14 +1,10 @@
-// Base URL — change this one line to swap between Node and Java backends
+// ── Purviksha API Client ──────────────────────────────────────────────────────
+// Change BASE_URL to 'http://localhost:8080/api' to use Java backend instead
+// Note: Java backend uses camelCase fields; Node uses snake_case
 const BASE_URL = 'http://localhost:5000/api'
 
-// --- HOSPITALS ---
-const getHospitals = async () => {
-  const res = await fetch(`${BASE_URL}/hospitals`)
-  const data = await res.json()
-  return data.data
-}
+// ── Patients ──────────────────────────────────────────────────────────────────
 
-// --- PATIENTS ---
 const createPatient = async (patientData) => {
   const res = await fetch(`${BASE_URL}/patients`, {
     method: 'POST',
@@ -19,14 +15,51 @@ const createPatient = async (patientData) => {
   return data.data
 }
 
-// --- AMBULANCES ---
+const getPatients = async () => {
+  const res = await fetch(`${BASE_URL}/patients`)
+  const data = await res.json()
+  return data.data
+}
+
+// ── Hospitals ─────────────────────────────────────────────────────────────────
+
+const createHospital = async (hospitalData) => {
+  const res = await fetch(`${BASE_URL}/hospitals`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(hospitalData)
+  })
+  const data = await res.json()
+  return data.data
+}
+
+const getHospitals = async () => {
+  const res = await fetch(`${BASE_URL}/hospitals`)
+  const data = await res.json()
+  return data.data
+}
+
+// ── Ambulances ────────────────────────────────────────────────────────────────
+
+const createAmbulance = async (ambulanceData) => {
+  const res = await fetch(`${BASE_URL}/ambulances`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(ambulanceData)
+  })
+  const data = await res.json()
+  return data.data
+}
+
+// GET all ambulances — used by setup.html
 const getAmbulances = async () => {
   const res = await fetch(`${BASE_URL}/ambulances`)
   const data = await res.json()
   return data.data
 }
 
-// --- TRIAGE ---
+// ── Triage ────────────────────────────────────────────────────────────────────
+
 const submitTriage = async (triageData) => {
   const res = await fetch(`${BASE_URL}/triage`, {
     method: 'POST',
@@ -34,11 +67,17 @@ const submitTriage = async (triageData) => {
     body: JSON.stringify(triageData)
   })
   const data = await res.json()
-  return data
+  return data.data
 }
 
-const getAllTriage = async () => {
+const getTriageRecords = async () => {
   const res = await fetch(`${BASE_URL}/triage`)
+  const data = await res.json()
+  return data.data
+}
+
+const getTriageById = async (id) => {
+  const res = await fetch(`${BASE_URL}/triage/${id}`)
   const data = await res.json()
   return data.data
 }
@@ -50,5 +89,5 @@ const updateTriageStatus = async (id, status) => {
     body: JSON.stringify({ status })
   })
   const data = await res.json()
-  return data
+  return data.data
 }

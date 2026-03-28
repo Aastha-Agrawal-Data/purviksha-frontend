@@ -147,17 +147,17 @@
     }
 
     async function loadAllRecords() {
-      try {
-        const records = await getAllTriage()
-        allRecords = records || []
-        updateStats()
-        applyFilter()
-      } catch (e) {
-        document.getElementById('patient-list').innerHTML =
-          '<div style="text-align:center; padding:40px; color:#718096;">' +
-          'Failed to load records. Is the backend running?</div>'
-      }
-    }
+  try {
+    const records = await getTriageRecords()
+    allRecords = records || []
+    updateStats()
+    renderCards(allRecords)
+  } catch (e) {
+    document.getElementById('patient-list').innerHTML =
+      '<div style="text-align:center; padding:40px; color:#718096;">' +
+      'Failed to load records. Is the backend running?</div>'
+  }
+}
 
     function updateStats() {
       document.getElementById('count-total').textContent = allRecords.length
