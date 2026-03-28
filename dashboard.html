@@ -5,36 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Purviksha — Hospital Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .vulnerable-badge {
+      display: inline-block;
+      background: #fff5f5;
+      border: 1px solid #fc8181;
+      color: #c53030;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+    }
+    .patient-card.completed {
+      border-left-color: #a0aec0;
+      opacity: 0.7;
+    }
+    .stat-card-completed {
+      border-top: 3px solid #718096!important;
+    }
+  </style>
 </head>
 <body>
 
   <div class="header">
     <div>
       <h1>🏥 Purviksha</h1>
-      <span>Hospital Emergency Dashboard</span>
+      <span id="hospitalName">Hospital Emergency Dashboard</span>
     </div>
-    <div style="margin-left: auto; display: flex;
-                align-items: center; gap: 16px;">
-      <div id="connection-status"
-           style="font-size: 0.85rem; color: #a0aec0;">
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
+      <div id="connection-status" style="font-size: 0.85rem; color: #a0aec0;">
         ⚪ Connecting...
       </div>
-      <a href="index.html"
-         style="color: #a0aec0; text-decoration: none;
-                font-size: 0.9rem;">← Back</a>
+      <a href="index.html" style="color: #a0aec0; text-decoration: none; font-size: 0.9rem;">← Back</a>
     </div>
   </div>
 
   <div class="container" style="margin-top: 30px;">
 
-    <!-- STATS BAR -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+    <!-- STATS BAR — 5 counters -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
                 gap: 16px; margin-bottom: 24px;">
 
       <div class="card" style="text-align: center; padding: 16px;">
-        <div style="font-size: 1.8rem; font-weight: 800;"
-             id="count-total">0</div>
-        <div style="font-size: 0.8rem; color: #718096;">Total</div>
+        <div style="font-size: 1.8rem; font-weight: 800;" id="count-total">0</div>
+        <div style="font-size: 0.8rem; color: #718096;">Active</div>
       </div>
 
       <div class="card" style="text-align: center; padding: 16px;
@@ -58,28 +73,30 @@
         <div style="font-size: 0.8rem; color: #718096;">GREEN</div>
       </div>
 
+      <div class="card stat-card-completed"
+           style="text-align: center; padding: 16px;">
+        <div style="font-size: 1.8rem; font-weight: 800;
+                    color: #718096;" id="count-completed">0</div>
+        <div style="font-size: 0.8rem; color: #718096;">Completed</div>
+      </div>
+
     </div>
 
     <!-- FILTER BAR -->
     <div class="card" style="padding: 16px; margin-bottom: 20px;
-                             display: flex; gap: 12px; align-items: center;">
+                             display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
       <span style="font-weight: 600; font-size: 0.9rem;">Filter:</span>
-      <button class="btn btn-primary filter-btn"
-              onclick="filterCards('ALL')"
-              data-filter="ALL">All</button>
-      <button class="btn filter-btn" onclick="filterCards('RED')"
-              data-filter="RED"
+      <button class="btn btn-primary filter-btn" onclick="filterCards('ALL')" data-filter="ALL">All</button>
+      <button class="btn filter-btn" onclick="filterCards('RED')" data-filter="RED"
               style="background:#fed7d7; color:#c53030;">RED</button>
-      <button class="btn filter-btn" onclick="filterCards('YELLOW')"
-              data-filter="YELLOW"
+      <button class="btn filter-btn" onclick="filterCards('YELLOW')" data-filter="YELLOW"
               style="background:#fefcbf; color:#b7791f;">YELLOW</button>
-      <button class="btn filter-btn" onclick="filterCards('GREEN')"
-              data-filter="GREEN"
+      <button class="btn filter-btn" onclick="filterCards('GREEN')" data-filter="GREEN"
               style="background:#c6f6d5; color:#276749;">GREEN</button>
+      <button class="btn filter-btn" onclick="filterCards('COMPLETED')" data-filter="COMPLETED"
+              style="background:#e2e8f0; color:#4a5568;">Completed</button>
       <button class="btn" onclick="loadAllRecords()"
-              style="margin-left: auto; background: #e2e8f0;">
-        🔄 Refresh
-      </button>
+              style="margin-left: auto; background: #e2e8f0;">🔄 Refresh</button>
     </div>
 
     <!-- LIVE ALERT BANNER -->
@@ -89,8 +106,7 @@
       <div style="font-weight: 700; color: #c53030; font-size: 1rem;">
         🚨 NEW INCOMING PATIENT
       </div>
-      <div id="live-alert-content"
-           style="margin-top: 8px; color: #2d3748;"></div>
+      <div id="live-alert-content" style="margin-top: 8px; color: #2d3748;"></div>
     </div>
 
     <!-- PATIENT CARDS -->
@@ -105,71 +121,89 @@
   <script src="http://localhost:5000/socket.io/socket.io.js"></script>
   <script src="api.js"></script>
   <script>
+    const HOSP_LABEL = 'purviksha_hospital_label'
 
-    let allRecords = []
+    let allRecords    = []
     let currentFilter = 'ALL'
+
+    // Show hospital name in header
+    var hospName = localStorage.getItem(HOSP_LABEL)
+    if (hospName) {
+      document.getElementById('hospitalName').textContent =
+        '🏥 ' + hospName + ' — Emergency Dashboard'
+    }
 
     const socket = io('http://localhost:5000')
 
-    socket.on('connect', () => {
-      document.getElementById('connection-status').innerHTML =
-        '🟢 Live — Connected'
+    socket.on('connect', function() {
+      document.getElementById('connection-status').innerHTML = '🟢 Live — Connected'
       document.getElementById('connection-status').style.color = '#68d391'
     })
 
-    socket.on('disconnect', () => {
-      document.getElementById('connection-status').innerHTML =
-        '🔴 Disconnected'
+    socket.on('disconnect', function() {
+      document.getElementById('connection-status').innerHTML = '🔴 Disconnected'
       document.getElementById('connection-status').style.color = '#fc8181'
     })
 
-    socket.on('new_triage_alert', (data) => {
+    socket.on('new_triage_alert', function(data) {
       showLiveAlert(data)
       loadAllRecords()
     })
 
     function showLiveAlert(data) {
-      const banner = document.getElementById('live-alert')
-      const content = document.getElementById('live-alert-content')
-      content.innerHTML = `
-        <strong>${data.patient_name || 'Unknown'}</strong>
-        &nbsp;|&nbsp; Age: ${data.age || '?'}
-        &nbsp;|&nbsp;
-        <span class="badge badge-${data.severity_level}">
-          ${data.severity_level}
-        </span>
-        &nbsp;|&nbsp; ETA: ${data.eta_minutes} min
-        ${data.fast_track
-          ? `&nbsp;|&nbsp; ⚡ Fast Track: ${data.fast_track_reason}`
-          : ''}
-      `
+      var banner  = document.getElementById('live-alert')
+      var content = document.getElementById('live-alert-content')
+      content.innerHTML =
+        '<strong>' + (data.patient_name || 'Unknown') + '</strong>' +
+        ' &nbsp;|&nbsp; Age: ' + (data.age || '?') +
+        ' &nbsp;|&nbsp; <span class="badge badge-' + data.severity_level + '">' +
+        data.severity_level + '</span>' +
+        ' &nbsp;|&nbsp; ETA: ' + data.eta_minutes + ' min' +
+        (data.fast_track ? ' &nbsp;|&nbsp; ⚡ Fast Track: ' + data.fast_track_reason : '') +
+        (data.vulnerable_population ? ' &nbsp;|&nbsp; <span class="vulnerable-badge">⚠️ Vulnerable</span>' : '')
       banner.style.display = 'block'
     }
 
     async function loadAllRecords() {
-  try {
-    const records = await getTriageRecords()
-    allRecords = records || []
-    updateStats()
-    renderCards(allRecords)
-  } catch (e) {
-    document.getElementById('patient-list').innerHTML =
-      '<div style="text-align:center; padding:40px; color:#718096;">' +
-      'Failed to load records. Is the backend running?</div>'
-  }
-}
+      try {
+        var records = await getAllTriage()
+        allRecords = records || []
+        updateStats()
+        applyFilter()
+      } catch(e) {
+        document.getElementById('patient-list').innerHTML =
+          '<div style="text-align:center; padding:40px; color:#718096;">' +
+          'Failed to load records. Is the backend running?</div>'
+      }
+    }
+
+    function isActive(r) {
+      var s = r.status
+      return s === 'PENDING' || s === 'RECEIVED'
+    }
+
+    function isCompleted(r) {
+      return r.status === 'IN_TREATMENT'
+    }
 
     function updateStats() {
-      document.getElementById('count-total').textContent = allRecords.length
+      var active    = allRecords.filter(isActive)
+      var completed = allRecords.filter(isCompleted)
+
+      document.getElementById('count-total').textContent = active.length
       document.getElementById('count-red').textContent =
-        allRecords.filter(r =>
-          (r.severity_level || r.severityLevel) === 'RED').length
+        active.filter(function(r) {
+          return (r.severity_level || r.severityLevel) === 'RED'
+        }).length
       document.getElementById('count-yellow').textContent =
-        allRecords.filter(r =>
-          (r.severity_level || r.severityLevel) === 'YELLOW').length
+        active.filter(function(r) {
+          return (r.severity_level || r.severityLevel) === 'YELLOW'
+        }).length
       document.getElementById('count-green').textContent =
-        allRecords.filter(r =>
-          (r.severity_level || r.severityLevel) === 'GREEN').length
+        active.filter(function(r) {
+          return (r.severity_level || r.severityLevel) === 'GREEN'
+        }).length
+      document.getElementById('count-completed').textContent = completed.length
     }
 
     function filterCards(filter) {
@@ -178,124 +212,117 @@
     }
 
     function applyFilter() {
-      const filtered = currentFilter === 'ALL'
-        ? allRecords
-        : allRecords.filter(r =>
-            (r.severity_level || r.severityLevel) === currentFilter)
+      var filtered
+      if (currentFilter === 'COMPLETED') {
+        filtered = allRecords.filter(isCompleted)
+      } else if (currentFilter === 'ALL') {
+        filtered = allRecords.filter(isActive)
+      } else {
+        filtered = allRecords.filter(function(r) {
+          return isActive(r) &&
+            (r.severity_level || r.severityLevel) === currentFilter
+        })
+      }
       renderCards(filtered)
     }
 
     function renderCards(records) {
-      const list = document.getElementById('patient-list')
-
+      var list = document.getElementById('patient-list')
       if (!records || records.length === 0) {
         list.innerHTML =
           '<div style="text-align:center; padding:40px; color:#718096;">' +
-          'No patients found.</div>'
+          (currentFilter === 'COMPLETED' ? 'No completed patients yet.' : 'No patients found.') +
+          '</div>'
         return
       }
-
-      const order = { RED: 0, YELLOW: 1, GREEN: 2 }
-      records.sort((a, b) => {
-        const sA = a.severity_level || a.severityLevel
-        const sB = b.severity_level || b.severityLevel
-        return (order[sA] ?? 3) - (order[sB] ?? 3)
+      var order = { RED: 0, YELLOW: 1, GREEN: 2 }
+      records.sort(function(a, b) {
+        var sA = a.severity_level || a.severityLevel
+        var sB = b.severity_level || b.severityLevel
+        return (order[sA] !== undefined ? order[sA] : 3) -
+               (order[sB] !== undefined ? order[sB] : 3)
       })
-
-      list.innerHTML = records.map(r => buildCard(r)).join('')
+      list.innerHTML = records.map(buildCard).join('')
     }
 
     function buildCard(r) {
-      const severity = r.severity_level || r.severityLevel
-      const status = r.status
-      const id = r._id || r.id
-      const score = r.total_score ?? r.totalScore ?? 0
-      const fastTrack = r.fast_track || r.fastTrack
-      const fastTrackReason = r.fast_track_reason || r.fastTrackReason
-      const eta = r.eta_minutes || r.etaMinutes
-      const time = r.createdAt
-        ? new Date(r.createdAt).toLocaleTimeString()
-        : 'N/A'
+      var severity        = r.severity_level || r.severityLevel
+      var status          = r.status
+      var id              = r._id || r.id
+      var score           = r.total_score !== undefined ? r.total_score :
+                            (r.totalScore !== undefined ? r.totalScore : 0)
+      var fastTrack       = r.fast_track || r.fastTrack
+      var fastTrackReason = r.fast_track_reason || r.fastTrackReason
+      var eta             = r.eta_minutes || r.etaMinutes
+      var vulnerable      = r.vulnerable_population || r.vulnerablePopulation
+      var time            = r.createdAt ? new Date(r.createdAt).toLocaleTimeString() : 'N/A'
+      var isComp          = status === 'IN_TREATMENT'
 
-      const patientInfo = r.patient_id
-        ? (typeof r.patient_id === 'object'
-          ? `${r.patient_id.name || 'Unknown'},
-             Age ${r.patient_id.age || '?'}`
-          : `Patient ID: ${r.patient_id}`)
-        : (r.patientId || 'Unknown')
+      var patientInfo
+      if (r.patient_id && typeof r.patient_id === 'object') {
+        patientInfo = (r.patient_id.name || 'Unknown') +
+          (r.patient_id.age ? ', Age ' + r.patient_id.age : '')
+      } else {
+        patientInfo = r.patientId || 'Unknown'
+      }
 
-      return `
-        <div class="patient-card ${severity}"
-             id="card-${id}" data-severity="${severity}">
+      var vulnerableBadge = vulnerable
+        ? '<span class="vulnerable-badge">⚠️ Vulnerable</span>' : ''
 
-          <div style="display:flex; justify-content:space-between;
-                      align-items:flex-start; margin-bottom: 12px;">
-            <div>
-              <span class="badge badge-${severity}">${severity}</span>
-              ${fastTrack
-                ? `<span style="margin-left:8px; font-size:0.8rem;
-                               color:#c53030;">⚡ ${fastTrackReason}</span>`
-                : ''}
-              <div style="font-size: 1rem; font-weight: 700;
-                          margin-top: 6px;">${patientInfo}</div>
-            </div>
-            <div style="text-align: right; font-size: 0.8rem;
-                        color: #718096;">
-              <div>Score: <strong>${score}</strong></div>
-              <div>ETA: <strong>${eta} min</strong></div>
-              <div>${time}</div>
-            </div>
-          </div>
+      var actionBtns = ''
+      if (!isComp) {
+        if (status === 'PENDING') {
+          actionBtns = '<button class="btn" onclick="changeStatus(\'' + id + '\',\'RECEIVED\')" ' +
+            'style="padding:6px 14px; font-size:0.8rem; background:#e2e8f0;">Mark Received</button>'
+        } else if (status === 'RECEIVED') {
+          actionBtns = '<button class="btn btn-primary" onclick="changeStatus(\'' + id + '\',\'IN_TREATMENT\')" ' +
+            'style="padding:6px 14px; font-size:0.8rem;">Start Treatment</button>'
+        }
+      } else {
+        actionBtns = '<span style="color:#38a169; font-size:0.85rem; font-weight:600;">✅ In Treatment</span>'
+      }
 
-          <div style="display:flex; gap:12px; font-size:0.82rem;
-                      color:#4a5568; margin-bottom:12px; flex-wrap:wrap;">
-            <span>Airway: <b>${r.airway_status || r.airwayStatus}</b></span>
-            <span>RR: <b>${r.respiratory_rate || r.respiratoryRate}</b></span>
-            <span>SpO2: <b>${r.spo2}%</b></span>
-            <span>PR: <b>${r.pulse_rate || r.pulseRate}</b></span>
-            <span>SBP: <b>${r.sbp}</b></span>
-            <span>AVPU: <b>${r.avpu}</b></span>
-          </div>
-
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-size:0.85rem;">
-              Status: <strong>${status}</strong>
-            </span>
-            ${status === 'PENDING'
-              ? `<button class="btn"
-                   onclick="changeStatus('${id}', 'RECEIVED')"
-                   style="padding:6px 14px; font-size:0.8rem;
-                          background:#e2e8f0;">
-                   Mark Received</button>`
-              : ''}
-            ${status === 'RECEIVED'
-              ? `<button class="btn btn-primary"
-                   onclick="changeStatus('${id}', 'IN_TREATMENT')"
-                   style="padding:6px 14px; font-size:0.8rem;">
-                   Start Treatment</button>`
-              : ''}
-            ${status === 'IN_TREATMENT'
-              ? `<span style="color:#38a169; font-size:0.85rem;
-                             font-weight:600;">✅ In Treatment</span>`
-              : ''}
-          </div>
-        </div>
-      `
+      return '<div class="patient-card ' + severity + (isComp ? ' completed' : '') + '" id="card-' + id + '">' +
+        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
+          '<div>' +
+            '<span class="badge badge-' + severity + '">' + severity + '</span>' +
+            (fastTrack ? '<span style="margin-left:8px; font-size:0.8rem; color:#c53030;">⚡ ' + fastTrackReason + '</span>' : '') +
+            vulnerableBadge +
+            '<div style="font-size:1rem; font-weight:700; margin-top:6px;">' + patientInfo + '</div>' +
+          '</div>' +
+          '<div style="text-align:right; font-size:0.8rem; color:#718096;">' +
+            '<div>Score: <strong>' + score + '</strong></div>' +
+            '<div>ETA: <strong>' + eta + ' min</strong></div>' +
+            '<div>' + time + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex; gap:12px; font-size:0.82rem; color:#4a5568; margin-bottom:12px; flex-wrap:wrap;">' +
+          '<span>Airway: <b>' + (r.airway_status || r.airwayStatus || '—') + '</b></span>' +
+          '<span>RR: <b>' + (r.respiratory_rate || r.respiratoryRate || '—') + '</b></span>' +
+          '<span>SpO2: <b>' + (r.spo2 || '—') + '%</b></span>' +
+          '<span>PR: <b>' + (r.pulse_rate || r.pulseRate || '—') + '</b></span>' +
+          '<span>SBP: <b>' + (r.sbp || '—') + '</b></span>' +
+          '<span>AVPU: <b>' + (r.avpu || '—') + '</b></span>' +
+        '</div>' +
+        '<div style="display:flex; align-items:center; gap:12px;">' +
+          '<span style="font-size:0.85rem;">Status: <strong>' + status + '</strong></span>' +
+          actionBtns +
+        '</div>' +
+      '</div>'
     }
 
     async function changeStatus(id, newStatus) {
       try {
         await updateTriageStatus(id, newStatus)
         await loadAllRecords()
-      } catch (e) {
+      } catch(e) {
         alert('Failed to update status')
       }
     }
 
-    window.onload = () => {
+    window.onload = function() {
       loadAllRecords()
     }
-
   </script>
 
 </body>

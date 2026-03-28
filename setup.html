@@ -15,99 +15,47 @@
       color: #b7791f;
       margin-bottom: 20px;
     }
-
-    .amb-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-
-    .amb-btn {
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 14px 16px;
-      cursor: pointer;
-      text-align: left;
+    .item-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: border-color 0.15s, background 0.15s;
-      width: 100%;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .amb-btn:active { transform: scale(0.98); }
-
-    .amb-btn.selected {
-      border-color: #1a1a2e;
-      background: #f0f4ff;
-    }
-
-    .amb-btn.selected .amb-check { opacity: 1; }
-
-    .amb-vehicle {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1a1a2e;
-      margin-bottom: 3px;
-    }
-
-    .amb-emt {
-      font-size: 0.82rem;
-      color: #718096;
-    }
-
-    .amb-check {
-      font-size: 1.2rem;
-      color: #1a1a2e;
-      opacity: 0;
-      transition: opacity 0.15s;
-      flex-shrink: 0;
-      margin-left: 12px;
-    }
-
-    .current-assignment {
-      background: #f0fff4;
-      border: 1px solid #68d391;
+      background: white;
+      border: 2px solid #e2e8f0;
       border-radius: 8px;
       padding: 12px 16px;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
-      color: #276749;
-      display: none;
+      margin-bottom: 10px;
+      gap: 12px;
     }
-
-    .current-assignment strong { font-weight: 700; }
-
-    .grid-loading {
-      text-align: center;
-      padding: 24px;
-      color: #718096;
-      font-size: 0.9rem;
+    .item-row.selected { border-color: #1a1a2e; background: #f0f4ff; }
+    .item-row.selected .item-check { opacity: 1; }
+    .item-info { flex: 1; cursor: pointer; }
+    .item-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+    .item-sub { font-size: 0.82rem; color: #718096; }
+    .item-check { font-size: 1.1rem; color: #1a1a2e; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+    .btn-delete {
+      background: transparent;
+      border: 1px solid #fc8181;
+      color: #c53030;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
     }
-
+    .btn-delete:hover { background: #fff5f5; }
+    .current-assignment {
+      background: #f0fff4; border: 1px solid #68d391; border-radius: 8px;
+      padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem;
+      color: #276749; display: none;
+    }
+    .grid-loading { text-align: center; padding: 24px; color: #718096; font-size: 0.9rem; }
     .success-box {
-      display: none;
-      background: #f0fff4;
-      border: 1px solid #68d391;
-      border-radius: 10px;
-      padding: 28px;
-      text-align: center;
+      display: none; background: #f0fff4; border: 1px solid #68d391;
+      border-radius: 10px; padding: 28px; text-align: center; margin-bottom: 20px;
     }
-
-    .success-box h3 {
-      color: #276749;
-      font-size: 1.2rem;
-      margin-bottom: 8px;
-    }
-
-    .success-box p {
-      color: #4a5568;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
+    .success-box h3 { color: #276749; font-size: 1.2rem; margin-bottom: 8px; }
+    .success-box p { color: #4a5568; font-size: 0.9rem; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -124,172 +72,358 @@
   <div class="container" style="margin-top: 30px;">
 
     <div class="setup-warning">
-      ⚠️ <strong>Admin only.</strong> Select the ambulance assigned to this device.
-      This setting persists until manually reset.
+      ⚠️ <strong>Admin only.</strong> Configure this device once before handing to EMT staff.
+      Settings persist until manually reset.
     </div>
 
-    <!-- Current assignment (shown if already set) -->
+    <!-- Current assignments -->
     <div class="current-assignment" id="currentAssignment">
-      ✅ Currently assigned: <strong id="currentLabel"></strong>
+      ✅ Ambulance: <strong id="currentAmbLabel"></strong>
+      &nbsp;·&nbsp;
+      Hospital: <strong id="currentHospLabel"></strong>
       &nbsp;·&nbsp;
       <a href="#" onclick="resetDevice(); return false;"
          style="color:#c53030; font-size:0.85rem;">Reset</a>
     </div>
 
-    <!-- Success screen (shown after saving) -->
+    <!-- Success screen -->
     <div class="success-box" id="successBox">
       <h3>✅ Device Configured</h3>
-      <p id="successText">This device is now assigned.</p>
+      <p id="successText"></p>
       <a href="index.html" class="btn btn-primary"
          style="text-decoration:none; display:inline-block;">
         Go to Home →
       </a>
     </div>
 
-    <!-- Ambulance selection -->
+    <!-- Setup content -->
     <div id="setupContent">
+
+      <!-- SECTION 1: Select ambulance -->
       <div class="card">
-        <div class="section-title">🚑 Select This Device's Ambulance</div>
-        <div id="ambGrid">
+        <div class="section-title">🚑 Step 1 — Select This Device's Ambulance</div>
+        <div id="ambList">
           <div class="grid-loading">Loading ambulances...</div>
+        </div>
+        <span class="error-msg" id="err-amb" style="display:none;">Please select an ambulance</span>
+      </div>
+
+      <!-- SECTION 2: Select hospital -->
+      <div class="card">
+        <div class="section-title">🏥 Step 2 — Select This Device's Hospital</div>
+        <div id="hospList">
+          <div class="grid-loading">Loading hospitals...</div>
+        </div>
+        <span class="error-msg" id="err-hosp" style="display:none;">Please select a hospital</span>
+      </div>
+
+      <!-- SECTION 3: Register new ambulance -->
+      <div class="card">
+        <div class="section-title">➕ Register New Ambulance</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vehicle Number *</label>
+            <input type="text" id="new_vehicle" placeholder="e.g. MH12-AB-1234">
+            <span class="error-msg" id="err-vehicle" style="display:none;">Required</span>
+          </div>
+          <div class="form-group">
+            <label>EMT Name *</label>
+            <input type="text" id="new_emt_name" placeholder="e.g. Rahul Sharma">
+            <span class="error-msg" id="err-emt-name" style="display:none;">Required</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>EMT ID *</label>
+            <input type="text" id="new_emt_id" placeholder="e.g. EMT001">
+            <span class="error-msg" id="err-emt-id" style="display:none;">Required</span>
+          </div>
+          <div class="form-group" style="display:flex; align-items:flex-end;">
+            <button class="btn btn-primary" type="button"
+                    onclick="registerAmbulance()"
+                    style="width:100%; padding: 10px;">
+              Register →
+            </button>
+          </div>
+        </div>
+        <div id="amb-success" style="display:none; color:#276749; font-size:0.85rem; margin-top:8px;">
+          ✅ Ambulance registered successfully.
         </div>
       </div>
 
+      <!-- SECTION 4: Register new hospital -->
+      <div class="card">
+        <div class="section-title">➕ Register New Hospital</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Hospital Name *</label>
+            <input type="text" id="new_hosp_name" placeholder="e.g. City General Hospital">
+            <span class="error-msg" id="err-hosp-name" style="display:none;">Required</span>
+          </div>
+          <div class="form-group">
+            <label>Location *</label>
+            <input type="text" id="new_hosp_loc" placeholder="e.g. Pune, Maharashtra">
+            <span class="error-msg" id="err-hosp-loc" style="display:none;">Required</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <button class="btn btn-primary" type="button"
+                  onclick="registerHospital()"
+                  style="padding: 10px 24px;">
+            Register →
+          </button>
+        </div>
+        <div id="hosp-success" style="display:none; color:#276749; font-size:0.85rem; margin-top:8px;">
+          ✅ Hospital registered successfully.
+        </div>
+      </div>
+
+      <!-- Save button -->
       <div style="text-align: center; margin-bottom: 40px;">
         <button class="btn btn-primary" id="btnSave" type="button"
                 onclick="saveSetup()"
                 style="padding: 14px 48px; font-size: 1rem;
                        opacity: 0.4; cursor: not-allowed;"
                 disabled>
-          Save Assignment →
+          Save Device Configuration →
         </button>
       </div>
-    </div>
 
+    </div>
   </div>
 
   <script src="api.js"></script>
   <script>
-    const AMB_KEY   = 'purviksha_ambulance_id'
-    const AMB_LABEL = 'purviksha_ambulance_label'
-    let selectedAmbId    = null
-    let selectedAmbLabel = ''
+    const AMB_KEY    = 'purviksha_ambulance_id'
+    const AMB_LABEL  = 'purviksha_ambulance_label'
+    const HOSP_KEY   = 'purviksha_hospital_id'
+    const HOSP_LABEL = 'purviksha_hospital_label'
 
-    window.onload = async () => {
-      // Show current assignment if exists
-      const existing = localStorage.getItem(AMB_KEY)
-      const existingLabel = localStorage.getItem(AMB_LABEL)
-      if (existing) {
-        document.getElementById('currentLabel').textContent =
-          existingLabel || existing
+    let selectedAmbId = null, selectedAmbLabel = ''
+    let selectedHospId = null, selectedHospLabel = ''
+
+    window.onload = async function() {
+      var existingAmb  = localStorage.getItem(AMB_KEY)
+      var existingHosp = localStorage.getItem(HOSP_KEY)
+      if (existingAmb && existingHosp) {
+        document.getElementById('currentAmbLabel').textContent =
+          localStorage.getItem(AMB_LABEL) || existingAmb
+        document.getElementById('currentHospLabel').textContent =
+          localStorage.getItem(HOSP_LABEL) || existingHosp
         document.getElementById('currentAssignment').style.display = 'block'
       }
-
       await loadAmbulances()
+      await loadHospitals()
     }
 
+    // ── Ambulances ────────────────────────────────────────
     async function loadAmbulances() {
-      const grid = document.getElementById('ambGrid')
-
+      var list = document.getElementById('ambList')
       try {
-        const ambulances = await getAmbulances()
-
+        var ambulances = await getAmbulances()
         if (!ambulances || ambulances.length === 0) {
-          grid.innerHTML =
-            '<div class="grid-loading">No ambulances registered.<br>' +
-            '<small>Add ambulances via POST /api/ambulances first.</small></div>'
+          list.innerHTML = '<div class="grid-loading">No ambulances yet. Register one below.</div>'
           return
         }
-
-        const container = document.createElement('div')
-        container.className = 'amb-grid'
-
+        list.innerHTML = ''
         ambulances.forEach(function(a) {
-          const id      = a._id || a.id
-          const vehicle = a.vehicle_number || a.vehicleNumber || 'Unknown'
-          const emt     = a.emt_name || a.emtName || 'Unknown EMT'
-          const label   = vehicle + ' — ' + emt
-
-          const btn = document.createElement('button')
-          btn.className = 'amb-btn'
-          btn.type = 'button'
-          btn.innerHTML =
-            '<div>' +
-              '<div class="amb-vehicle">' + vehicle + '</div>' +
-              '<div class="amb-emt">' + emt + '</div>' +
+          var id      = a._id || a.id
+          var vehicle = a.vehicle_number || a.vehicleNumber || 'Unknown'
+          var emt     = a.emt_name || a.emtName || 'Unknown EMT'
+          var label   = vehicle + ' — ' + emt
+          var row = document.createElement('div')
+          row.className = 'item-row'
+          row.id = 'amb-row-' + id
+          row.innerHTML =
+            '<div class="item-info" onclick="selectAmbulance(\'' + id + '\',\'' +
+              label.replace(/'/g, "\\'") + '\',this.parentElement)">' +
+              '<div class="item-title">' + vehicle + '</div>' +
+              '<div class="item-sub">' + emt + '</div>' +
             '</div>' +
-            '<div class="amb-check">✓</div>'
-
-          btn.addEventListener('click', function() {
-            selectAmbulance(btn, id, label)
-          })
-
-          container.appendChild(btn)
+            '<div class="item-check">✓</div>' +
+            '<button class="btn-delete" type="button" ' +
+              'onclick="deleteAmb(\'' + id + '\')">🗑 Delete</button>'
+          list.appendChild(row)
         })
-
-        grid.innerHTML = ''
-        grid.appendChild(container)
-
       } catch(err) {
-        grid.innerHTML =
-          '<div class="grid-loading" style="color:#c53030;">' +
-          'Failed to load ambulances.<br>' +
-          '<small>Make sure the Node backend is running on port 5000.</small>' +
-          '</div>'
+        list.innerHTML = '<div class="grid-loading" style="color:#c53030;">Failed to load. Is the backend running?</div>'
       }
     }
 
-    function selectAmbulance(btn, id, label) {
-      document.querySelectorAll('.amb-btn.selected')
-        .forEach(function(b) { b.classList.remove('selected') })
-
-      btn.classList.add('selected')
-      selectedAmbId    = id
+    function selectAmbulance(id, label, row) {
+      document.querySelectorAll('#ambList .item-row').forEach(function(r) {
+        r.classList.remove('selected')
+      })
+      row.classList.add('selected')
+      selectedAmbId = id
       selectedAmbLabel = label
+      checkSaveReady()
+    }
 
+    async function deleteAmb(id) {
+      if (!confirm('Delete this ambulance? This cannot be undone.')) return
+      try {
+        await deleteAmbulance(id)
+        if (selectedAmbId === id) {
+          selectedAmbId = null; selectedAmbLabel = ''
+          checkSaveReady()
+        }
+        await loadAmbulances()
+      } catch(err) {
+        alert('Failed to delete: ' + err.message)
+      }
+    }
+
+    // ── Hospitals ─────────────────────────────────────────
+    async function loadHospitals() {
+      var list = document.getElementById('hospList')
+      try {
+        var hospitals = await getHospitals()
+        if (!hospitals || hospitals.length === 0) {
+          list.innerHTML = '<div class="grid-loading">No hospitals yet. Register one below.</div>'
+          return
+        }
+        list.innerHTML = ''
+        hospitals.forEach(function(h) {
+          var id   = h._id || h.id
+          var name = h.hospital_name || h.hospitalName || 'Unknown'
+          var loc  = h.location || '—'
+          var row  = document.createElement('div')
+          row.className = 'item-row'
+          row.id = 'hosp-row-' + id
+          row.innerHTML =
+            '<div class="item-info" onclick="selectHospital(\'' + id + '\',\'' +
+              name.replace(/'/g, "\\'") + '\',this.parentElement)">' +
+              '<div class="item-title">' + name + '</div>' +
+              '<div class="item-sub">📍 ' + loc + '</div>' +
+            '</div>' +
+            '<div class="item-check">✓</div>' +
+            '<button class="btn-delete" type="button" ' +
+              'onclick="deleteHosp(\'' + id + '\')">🗑 Delete</button>'
+          list.appendChild(row)
+        })
+      } catch(err) {
+        list.innerHTML = '<div class="grid-loading" style="color:#c53030;">Failed to load. Is the backend running?</div>'
+      }
+    }
+
+    function selectHospital(id, name, row) {
+      document.querySelectorAll('#hospList .item-row').forEach(function(r) {
+        r.classList.remove('selected')
+      })
+      row.classList.add('selected')
+      selectedHospId = id
+      selectedHospLabel = name
+      checkSaveReady()
+    }
+
+    async function deleteHosp(id) {
+      if (!confirm('Delete this hospital? This cannot be undone.')) return
+      try {
+        await deleteHospital(id)
+        if (selectedHospId === id) {
+          selectedHospId = null; selectedHospLabel = ''
+          checkSaveReady()
+        }
+        await loadHospitals()
+      } catch(err) {
+        alert('Failed to delete: ' + err.message)
+      }
+    }
+
+    // ── Save / Reset ──────────────────────────────────────
+    function checkSaveReady() {
       var s = document.getElementById('btnSave')
-      s.disabled = false
-      s.style.opacity = '1'
-      s.style.cursor = 'pointer'
+      if (selectedAmbId && selectedHospId) {
+        s.disabled = false; s.style.opacity = '1'; s.style.cursor = 'pointer'
+      } else {
+        s.disabled = true; s.style.opacity = '0.4'; s.style.cursor = 'not-allowed'
+      }
     }
 
     function saveSetup() {
-      if (!selectedAmbId) return
-
-      localStorage.setItem(AMB_KEY,   selectedAmbId)
-      localStorage.setItem(AMB_LABEL, selectedAmbLabel)
-
-      // Update current assignment display
-      document.getElementById('currentLabel').textContent = selectedAmbLabel
+      if (!selectedAmbId || !selectedHospId) return
+      localStorage.setItem(AMB_KEY,    selectedAmbId)
+      localStorage.setItem(AMB_LABEL,  selectedAmbLabel)
+      localStorage.setItem(HOSP_KEY,   selectedHospId)
+      localStorage.setItem(HOSP_LABEL, selectedHospLabel)
+      document.getElementById('currentAmbLabel').textContent  = selectedAmbLabel
+      document.getElementById('currentHospLabel').textContent = selectedHospLabel
       document.getElementById('currentAssignment').style.display = 'block'
-
-      // Show success
       document.getElementById('setupContent').style.display = 'none'
       document.getElementById('successText').textContent =
-        'This device is now assigned to: ' + selectedAmbLabel
+        'Ambulance: ' + selectedAmbLabel + ' · Hospital: ' + selectedHospLabel
       document.getElementById('successBox').style.display = 'block'
     }
 
     function resetDevice() {
-      if (!confirm('Remove the current ambulance assignment from this device?')) return
-
-      localStorage.removeItem(AMB_KEY)
-      localStorage.removeItem(AMB_LABEL)
-
+      if (!confirm('Remove all device configuration?')) return
+      localStorage.removeItem(AMB_KEY);  localStorage.removeItem(AMB_LABEL)
+      localStorage.removeItem(HOSP_KEY); localStorage.removeItem(HOSP_LABEL)
       document.getElementById('currentAssignment').style.display = 'none'
       document.getElementById('successBox').style.display = 'none'
       document.getElementById('setupContent').style.display = 'block'
+      document.querySelectorAll('.item-row.selected').forEach(function(r) {
+        r.classList.remove('selected')
+      })
+      selectedAmbId = null; selectedAmbLabel = ''
+      selectedHospId = null; selectedHospLabel = ''
+      checkSaveReady()
+    }
 
-      // Deselect grid
-      document.querySelectorAll('.amb-btn.selected')
-        .forEach(function(b) { b.classList.remove('selected') })
-      selectedAmbId    = null
-      selectedAmbLabel = ''
+    // ── Register new ambulance ────────────────────────────
+    async function registerAmbulance() {
+      var vehicle = document.getElementById('new_vehicle').value.trim()
+      var emtName = document.getElementById('new_emt_name').value.trim()
+      var emtId   = document.getElementById('new_emt_id').value.trim()
+      var valid = true
+      function show(id, condition) {
+        document.getElementById(id).style.display = condition ? 'block' : 'none'
+        if (condition) valid = false
+      }
+      show('err-vehicle',  !vehicle)
+      show('err-emt-name', !emtName)
+      show('err-emt-id',   !emtId)
+      if (!valid) return
+      try {
+        await createAmbulance({ vehicle_number: vehicle, emt_name: emtName, emt_id: emtId })
+        document.getElementById('new_vehicle').value = ''
+        document.getElementById('new_emt_name').value = ''
+        document.getElementById('new_emt_id').value = ''
+        document.getElementById('amb-success').style.display = 'block'
+        setTimeout(function() {
+          document.getElementById('amb-success').style.display = 'none'
+        }, 3000)
+        await loadAmbulances()
+      } catch(err) {
+        alert('Failed to register ambulance: ' + err.message)
+      }
+    }
 
-      var s = document.getElementById('btnSave')
-      s.disabled = true
-      s.style.opacity = '0.4'
-      s.style.cursor = 'not-allowed'
+    // ── Register new hospital ─────────────────────────────
+    async function registerHospital() {
+      var name = document.getElementById('new_hosp_name').value.trim()
+      var loc  = document.getElementById('new_hosp_loc').value.trim()
+      var valid = true
+      function show(id, condition) {
+        document.getElementById(id).style.display = condition ? 'block' : 'none'
+        if (condition) valid = false
+      }
+      show('err-hosp-name', !name)
+      show('err-hosp-loc',  !loc)
+      if (!valid) return
+      try {
+        await createHospital({ hospital_name: name, location: loc })
+        document.getElementById('new_hosp_name').value = ''
+        document.getElementById('new_hosp_loc').value = ''
+        document.getElementById('hosp-success').style.display = 'block'
+        setTimeout(function() {
+          document.getElementById('hosp-success').style.display = 'none'
+        }, 3000)
+        await loadHospitals()
+      } catch(err) {
+        alert('Failed to register hospital: ' + err.message)
+      }
     }
   </script>
 

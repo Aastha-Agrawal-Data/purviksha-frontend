@@ -57,6 +57,21 @@ const getAmbulances = async () => {
   const data = await res.json()
   return data.data
 }
+const deleteAmbulance = async (id) => {
+  const res = await fetch(`${BASE_URL}/ambulances/${id}`, {
+    method: 'DELETE'
+  })
+  const data = await res.json()
+  return data
+}
+
+const deleteHospital = async (id) => {
+  const res = await fetch(`${BASE_URL}/hospitals/${id}`, {
+    method: 'DELETE'
+  })
+  const data = await res.json()
+  return data
+}
 
 // ── Triage ────────────────────────────────────────────────────────────────────
 
@@ -70,7 +85,7 @@ const submitTriage = async (triageData) => {
   return data.data
 }
 
-const getTriageRecords = async () => {
+const getAllTriage = async () => {
   const res = await fetch(`${BASE_URL}/triage`)
   const data = await res.json()
   return data.data
