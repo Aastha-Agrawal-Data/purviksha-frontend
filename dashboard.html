@@ -118,7 +118,7 @@
 
   </div>
 
-  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+  <script src="https://purviksha-node.onrender.com/socket.io/socket.io.js"></script>
   <script src="api.js"></script>
   <script>
     const HOSP_LABEL = 'purviksha_hospital_label'
@@ -133,7 +133,7 @@
         '🏥 ' + hospName + ' — Emergency Dashboard'
     }
 
-    const socket = io('http://localhost:5000')
+    const socket = io('https://purviksha-node.onrender.com')
 
     socket.on('connect', function() {
       document.getElementById('connection-status').innerHTML = '🟢 Live — Connected'

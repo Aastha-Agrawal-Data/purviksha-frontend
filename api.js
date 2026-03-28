@@ -1,7 +1,7 @@
 // ── Purviksha API Client ──────────────────────────────────────────────────────
 // Change BASE_URL to 'http://localhost:8080/api' to use Java backend instead
 // Note: Java backend uses camelCase fields; Node uses snake_case
-const BASE_URL = 'http://localhost:5000/api'
+const BASE_URL = 'https://purviksha-node.onrender.com/api'
 
 // ── Patients ──────────────────────────────────────────────────────────────────
 
