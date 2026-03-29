@@ -6,55 +6,248 @@
   <title>Purviksha — Triage Form</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    .amb-chip {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: var(--cyan-dim);
+      border: 1px solid rgba(0,212,255,0.25);
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--cyan);
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+
+    .amb-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse-ring 2s infinite;
+    }
+
+    /* Age brackets */
     .age-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      margin-top: 4px;
+      margin-top: 6px;
     }
+
     .age-btn {
-      background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 7px;
-      padding: 10px 6px;
-      font-size: 0.82rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-mid);
+      font-family: var(--mono);
+      font-size: 0.78rem;
       font-weight: 600;
-      color: #4a5568;
+      padding: 10px 6px;
       cursor: pointer;
       text-align: center;
-      transition: border-color 0.15s, background 0.15s;
+      transition: all var(--transition);
       -webkit-tap-highlight-color: transparent;
     }
-    .age-btn:active { transform: scale(0.96); }
+
+    .age-btn:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+
+    .age-btn:active { transform: scale(0.95); }
+
     .age-btn.selected {
-      border-color: #1a1a2e;
-      background: #f0f4ff;
-      color: #1a1a2e;
+      background: var(--cyan-dim);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 12px rgba(0,212,255,0.2);
     }
+
+    /* Checkbox */
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: border-color var(--transition);
+      margin-top: 4px;
+    }
+
+    .check-row:hover { border-color: var(--border-hi); }
+
+    .check-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--red);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .check-row label {
+      font-size: 0.85rem;
+      font-family: var(--sans);
+      color: var(--text-mid);
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+    }
+
+    /* Fast track banner */
+    .fast-track-banner {
+      display: none;
+      background: var(--red-dim);
+      border: 1px solid rgba(255,61,107,0.35);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--red);
+      margin-top: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ETA stepper */
     .eta-stepper {
-      display: flex; align-items: center; gap: 16px;
-      background: #f7fafc; border: 1px solid #e2e8f0;
-      border-radius: 8px; padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
     }
+
     .eta-btn {
-      width: 52px; height: 52px; background: #1a1a2e; color: white;
-      border: none; border-radius: 8px; font-size: 1.5rem; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; user-select: none; -webkit-tap-highlight-color: transparent;
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--cyan), #0099cc);
+      color: #000;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1.4rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: all var(--transition);
+      box-shadow: 0 4px 16px rgba(0,212,255,0.2);
     }
+
     .eta-btn:active { transform: scale(0.92); }
+
     .eta-display { flex: 1; text-align: center; }
-    .eta-value { font-size: 2.6rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
-    .eta-unit { font-size: 0.75rem; color: #718096; margin-top: 2px; }
-    .eta-hint { font-size: 0.75rem; color: #a0aec0; text-align: center; margin-top: 6px; }
-    .amb-chip {
-      display: none; align-items: center; gap: 6px;
-      background: #f0f4ff; border: 1px solid #c3d0f0;
-      border-radius: 20px; padding: 6px 14px;
-      font-size: 0.82rem; color: #1a1a2e; font-weight: 600; margin-bottom: 20px;
+
+    .eta-value {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      font-family: var(--mono);
     }
-    .amb-dot { width: 7px; height: 7px; background: #38a169; border-radius: 50%; flex-shrink: 0; }
-    .grid-loading { text-align: center; padding: 20px; color: #718096; font-size: 0.9rem; }
+
+    .eta-unit {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 3px;
+    }
+
+    .eta-hint {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* Submit button */
+    .submit-wrap {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .btn-submit-main {
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      color: #000;
+      font-family: var(--sans);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 16px 52px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 24px rgba(0,212,255,0.3);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-submit-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,212,255,0.45);
+    }
+
+    .btn-submit-main:active { transform: translateY(0); }
+
+    .btn-submit-main:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Result screen */
+    #result-label {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+
+    #result-score {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: var(--text-mid);
+      margin-top: 10px;
+    }
+
+    #result-fasttrack, #result-vulnerable {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      margin-top: 6px;
+      opacity: 0.8;
+    }
+
+    .btn-new-triage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-mid);
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 12px 32px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-top: 8px;
+    }
+
+    .btn-new-triage:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
   </style>
 </head>
 <body>
@@ -64,23 +257,21 @@
       <h1>🚑 Purviksha</h1>
       <span>EMT Triage Form</span>
     </div>
-    <a href="index.html" style="margin-left: auto; color: #a0aec0;
-       text-decoration: none; font-size: 0.9rem;">← Back</a>
+    <a href="index.html" style="margin-left: auto;">← Back</a>
   </div>
 
-  <div class="container" style="margin-top: 30px;">
+  <div class="container" style="margin-top: 28px;">
 
-    <!-- Ambulance chip -->
     <div id="ambChip" class="amb-chip">
       <div class="amb-dot"></div>
       <span id="ambChipText"></span>
     </div>
 
     <!-- STEP 1: FAST TRACK -->
-    <div class="card" id="step-fasttrack">
+    <div class="card animate-in">
       <div class="section-title">⚡ Step 1 — Fast Track Check</div>
-      <p style="color: #718096; margin-bottom: 16px; font-size: 0.9rem;">
-        Check if patient has any immediately life-threatening condition.
+      <p style="color: var(--text-mid); margin-bottom: 16px; font-size: 0.88rem; line-height: 1.6;">
+        Check for immediately life-threatening conditions requiring bypass of ABCD scoring.
       </p>
       <div class="form-group">
         <label>Fast Track Condition</label>
@@ -92,15 +283,13 @@
           <option value="STROKE">Sudden Onset Weakness (Stroke)</option>
         </select>
       </div>
-      <div id="fasttrack-alert" style="display:none; background:#fff5f5;
-           border: 1px solid #fc8181; border-radius: 6px; padding: 12px;
-           color: #c53030; font-weight: 600; margin-top: 8px;">
-        ⚠️ FAST TRACK RED — Skip ABCD. Proceed directly to submission.
+      <div id="fasttrack-alert" class="fast-track-banner">
+        ⚡ FAST TRACK RED — Skip ABCD. Proceed directly to submission.
       </div>
     </div>
 
     <!-- STEP 2: PATIENT INFO -->
-    <div class="card">
+    <div class="card animate-in" style="animation-delay: 0.05s">
       <div class="section-title">👤 Step 2 — Patient Information</div>
       <div class="form-row">
         <div class="form-group">
@@ -120,8 +309,7 @@
         </div>
       </div>
 
-      <!-- Age brackets -->
-      <div class="form-group" style="margin-top: 4px;">
+      <div class="form-group">
         <label>Age Bracket *</label>
         <div class="age-grid">
           <button class="age-btn" type="button" onclick="selectAge(this,'0-2')">0–2</button>
@@ -139,34 +327,33 @@
         <span class="error-msg" id="err-age">Please select an age bracket</span>
       </div>
 
-      <div class="form-group" style="margin-top: 12px;">
+      <div class="form-group">
         <label>Contact</label>
         <input type="text" id="patient_contact" placeholder="Phone number (optional)">
       </div>
 
-      <div class="form-group" style="margin-top: 4px;">
-        <label>
-          <input type="checkbox" id="vulnerable_population"
-                 style="width:auto; margin-right: 8px;">
-          ⚠️ Vulnerable Population (Pregnant / Pediatric)
-        </label>
+      <div class="check-row" onclick="document.getElementById('vulnerable_population').click()">
+        <input type="checkbox" id="vulnerable_population">
+        <label for="vulnerable_population">⚠️ Vulnerable Population — Pregnant / Pediatric</label>
       </div>
     </div>
 
     <!-- STEP 3: ABCD -->
-    <div class="card" id="abcd-section">
+    <div class="card animate-in" id="abcd-section" style="animation-delay: 0.1s">
       <div class="section-title">🩺 Step 3 — ABCD Clinical Assessment</div>
+
       <div class="form-group">
         <label>A — Airway Status *</label>
         <select id="airway_status">
-          <option value="PATENT">Patent (Clear)</option>
+          <option value="PATENT">Patent — Clear</option>
           <option value="OBSTRUCTED">Obstructed</option>
         </select>
       </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label>B — Respiratory Rate (breaths/min) *</label>
-          <input type="number" id="respiratory_rate" placeholder="Normal: 12-20" min="0" max="60">
+          <label>B — Respiratory Rate (br/min) *</label>
+          <input type="number" id="respiratory_rate" placeholder="Normal: 12–20" min="0" max="60">
           <span class="error-msg" id="err-rr">Required</span>
         </div>
         <div class="form-group">
@@ -175,10 +362,11 @@
           <span class="error-msg" id="err-spo2">Required</span>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>C — Pulse Rate (bpm) *</label>
-          <input type="number" id="pulse_rate" placeholder="Normal: 60-100" min="0" max="250">
+          <input type="number" id="pulse_rate" placeholder="Normal: 60–100" min="0" max="250">
           <span class="error-msg" id="err-pr">Required</span>
         </div>
         <div class="form-group">
@@ -187,12 +375,13 @@
           <span class="error-msg" id="err-sbp">Required</span>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>C — Capillary Refill Time *</label>
           <select id="crt">
-            <option value="LESS_THAN_2">Less than 2 seconds (Normal)</option>
-            <option value="MORE_THAN_2">More than 2 seconds (Abnormal)</option>
+            <option value="LESS_THAN_2">≤ 2 seconds (Normal)</option>
+            <option value="MORE_THAN_2">&gt; 2 seconds (Delayed)</option>
           </select>
         </div>
         <div class="form-group">
@@ -207,13 +396,10 @@
       </div>
     </div>
 
-    <!-- STEP 4: ETA ONLY -->
-    <div class="card">
+    <!-- STEP 4: ETA -->
+    <div class="card animate-in" style="animation-delay: 0.15s">
       <div class="section-title">🏥 Step 4 — Dispatch</div>
-      <label style="display:block; font-size:0.85rem; font-weight:600;
-                    color:#4a5568; margin-bottom: 10px;">
-        Estimated Time of Arrival *
-      </label>
+      <label style="display:block; margin-bottom: 10px;">Estimated Time of Arrival *</label>
       <div class="eta-stepper">
         <button class="eta-btn" type="button"
           onpointerdown="startEtaHold(-1)"
@@ -232,26 +418,24 @@
     </div>
 
     <!-- SUBMIT -->
-    <div style="text-align: center; margin-bottom: 40px;">
-      <button class="btn btn-primary" id="btnSubmit" type="button"
-              onclick="submitTriageForm()"
-              style="padding: 14px 48px; font-size: 1rem;">
+    <div class="submit-wrap">
+      <button class="btn-submit-main" id="btnSubmit" type="button" onclick="submitTriageForm()">
         Submit Triage →
       </button>
     </div>
 
     <!-- RESULT -->
     <div id="result-section" style="display:none;">
-      <div id="result-box" class="result-box">
+      <div id="result-box" class="result-box animate-in">
         <div id="result-label"></div>
         <h2 id="result-severity"></h2>
-        <p id="result-score" style="margin-top: 8px; font-size: 1rem;"></p>
-        <p id="result-fasttrack" style="margin-top: 4px; font-size: 0.9rem;"></p>
-        <p id="result-vulnerable" style="margin-top: 4px; font-size: 0.9rem; color: #c53030;"></p>
+        <p id="result-score"></p>
+        <p id="result-fasttrack"></p>
+        <p id="result-vulnerable"></p>
       </div>
       <div style="text-align:center; margin-bottom: 40px;">
-        <button class="btn btn-primary" type="button" onclick="resetForm()">
-          New Triage
+        <button class="btn-new-triage" type="button" onclick="resetForm()">
+          + New Triage
         </button>
       </div>
     </div>
@@ -260,32 +444,24 @@
 
   <script src="api.js"></script>
   <script>
-    const AMB_KEY    = 'purviksha_ambulance_id'
-    const AMB_LABEL  = 'purviksha_ambulance_label'
-    const HOSP_KEY   = 'purviksha_hospital_id'
+    const AMB_KEY  = 'purviksha_ambulance_id'
+    const AMB_LABEL = 'purviksha_ambulance_label'
+    const HOSP_KEY = 'purviksha_hospital_id'
 
     let etaMinutes = 10, etaHoldInterval = null, etaHoldTimeout = null
-    let ambulanceId = null, hospitalId = null
-    let selectedAge = null
+    let ambulanceId = null, hospitalId = null, selectedAge = null
 
     window.onload = function() {
       ambulanceId = localStorage.getItem(AMB_KEY)
       hospitalId  = localStorage.getItem(HOSP_KEY)
       var ambLabel = localStorage.getItem(AMB_LABEL)
-
-      if (!ambulanceId || !hospitalId) {
-        window.location.href = 'setup.html'
-        return
-      }
-
+      if (!ambulanceId || !hospitalId) { window.location.href = 'setup.html'; return }
       document.getElementById('ambChipText').textContent = ambLabel || ambulanceId
       document.getElementById('ambChip').style.display = 'flex'
     }
 
     function selectAge(btn, bracket) {
-      document.querySelectorAll('.age-btn').forEach(function(b) {
-        b.classList.remove('selected')
-      })
+      document.querySelectorAll('.age-btn').forEach(function(b) { b.classList.remove('selected') })
       btn.classList.add('selected')
       selectedAge = bracket
       document.getElementById('err-age').style.display = 'none'
@@ -296,10 +472,10 @@
       document.getElementById('etaValue').textContent = etaMinutes
     }
 
-    function startEtaHold(direction) {
-      changeEta(direction)
+    function startEtaHold(dir) {
+      changeEta(dir)
       etaHoldTimeout = setTimeout(function() {
-        etaHoldInterval = setInterval(function() { changeEta(direction * 5) }, 200)
+        etaHoldInterval = setInterval(function() { changeEta(dir * 5) }, 200)
       }, 500)
     }
 
@@ -313,13 +489,9 @@
       var alrt = document.getElementById('fasttrack-alert')
       var abcd = document.getElementById('abcd-section')
       if (val !== 'NONE') {
-        alrt.style.display = 'block'
-        abcd.style.opacity = '0.4'
-        abcd.style.pointerEvents = 'none'
+        alrt.style.display = 'block'; abcd.style.opacity = '0.35'; abcd.style.pointerEvents = 'none'
       } else {
-        alrt.style.display = 'none'
-        abcd.style.opacity = '1'
-        abcd.style.pointerEvents = 'auto'
+        alrt.style.display = 'none'; abcd.style.opacity = '1'; abcd.style.pointerEvents = 'auto'
       }
     }
 
@@ -345,9 +517,10 @@
     async function submitTriageForm() {
       if (!validate()) return
       var fastTrackReason = document.getElementById('fast_track_reason').value
-      var isFastTrack = fastTrackReason !== 'NONE'
-      var isVulnerable = document.getElementById('vulnerable_population').checked
-
+      var isFastTrack     = fastTrackReason !== 'NONE'
+      var isVulnerable    = document.getElementById('vulnerable_population').checked
+      var btn = document.getElementById('btnSubmit')
+      btn.disabled = true; btn.textContent = 'Submitting...'
       try {
         var patient = await createPatient({
           name:    document.getElementById('patient_name').value.trim(),
@@ -355,69 +528,110 @@
           gender:  document.getElementById('patient_gender').value,
           contact: document.getElementById('patient_contact').value
         })
-        if (!patient || !(patient._id || patient.id))
-          throw new Error('Patient creation failed')
-
+        if (!patient || !(patient._id || patient.id)) throw new Error('Patient creation failed')
         var patientId = patient._id || patient.id
-
         var payload = {
-          patient_id:            patientId,
-          ambulance_id:          ambulanceId,
-          hospital_id:           hospitalId,
-          airway_status:         document.getElementById('airway_status').value,
-          respiratory_rate:      parseInt(document.getElementById('respiratory_rate').value) || 16,
-          spo2:                  parseFloat(document.getElementById('spo2').value) || 98,
-          pulse_rate:            parseInt(document.getElementById('pulse_rate').value) || 80,
-          sbp:                   parseInt(document.getElementById('sbp').value) || 120,
-          crt:                   document.getElementById('crt').value,
-          avpu:                  document.getElementById('avpu').value,
-          fast_track:            isFastTrack,
-          fast_track_reason:     fastTrackReason,
-          vulnerable_population: isVulnerable,
-          eta_minutes:           etaMinutes
+          patient_id: patientId, ambulance_id: ambulanceId, hospital_id: hospitalId,
+          airway_status: document.getElementById('airway_status').value,
+          respiratory_rate: parseInt(document.getElementById('respiratory_rate').value) || 16,
+          spo2: parseFloat(document.getElementById('spo2').value) || 98,
+          pulse_rate: parseInt(document.getElementById('pulse_rate').value) || 80,
+          sbp: parseInt(document.getElementById('sbp').value) || 120,
+          crt: document.getElementById('crt').value,
+          avpu: document.getElementById('avpu').value,
+          fast_track: isFastTrack, fast_track_reason: fastTrackReason,
+          vulnerable_population: isVulnerable, eta_minutes: etaMinutes
         }
-
         var result = await submitTriage(payload)
         if (!result) throw new Error('No response from triage API')
-        showResult(result)
-
+        showResult(result, isVulnerable)
       } catch(e) {
-        alert('Submission failed: ' + e.message + '\nIs the backend running on port 5000?')
+        alert('Submission failed: ' + e.message)
+      } finally {
+        btn.disabled = false; btn.textContent = 'Submit Triage →'
       }
     }
 
-    function showResult(data) {
-      var severity  = data.severity_level
-      var box       = document.getElementById('result-box')
-      var section   = document.getElementById('result-section')
-      var isVulnerable = document.getElementById('vulnerable_population').checked
-
-      box.className = 'result-box ' + severity
+    function showResult(data, isVulnerable) {
+      var severity = data.severity_level
+      document.getElementById('result-box').className = 'result-box animate-in ' + severity
       document.getElementById('result-severity').textContent = severity
       document.getElementById('result-label').textContent =
-        severity === 'RED' ? '🔴 CRITICAL' :
-        severity === 'YELLOW' ? '🟡 URGENT' : '🟢 MINOR'
-      document.getElementById('result-score').textContent =
-        'Triage Score: ' + data.total_score
+        severity === 'RED' ? '🔴 CRITICAL — Immediate' :
+        severity === 'YELLOW' ? '🟡 URGENT — Delayed' : '🟢 MINOR — Minimal'
+      document.getElementById('result-score').textContent = 'Triage Score: ' + data.total_score
       document.getElementById('result-fasttrack').textContent =
         data.fast_track ? '⚡ Fast Track: ' + data.fast_track_reason : ''
       document.getElementById('result-vulnerable').textContent =
         isVulnerable ? '⚠️ Vulnerable Population — Hospital Alerted' : ''
-
-      section.style.display = 'block'
-      section.scrollIntoView({ behavior: 'smooth' })
+      document.getElementById('result-section').style.display = 'block'
+      document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' })
     }
 
     function resetForm() {
-      selectedAge = null
-      etaMinutes  = 10
-      document.getElementById('result-section').style.display = 'none'
-      document.getElementById('etaValue').textContent = '10'
-      document.querySelectorAll('.age-btn').forEach(function(b) {
-        b.classList.remove('selected')
-      })
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+  // Reset state variables
+  currentStep = 1
+  selectedHospitalId = null
+  selectedHospitalName = ''
+  etaMinutes = 10
+  fastTrack = null
+  airway = null
+  avpu = null
+  crt = null
+  gender = null
+
+  // Hide result, show form
+  document.getElementById('resultScreen').style.display = 'none'
+  document.getElementById('formArea').style.display = 'block'
+
+  // Reset all step panels
+  document.querySelectorAll('.step-panel').forEach(p => {
+    p.classList.remove('active')
+  })
+  document.getElementById('step1').classList.add('active')
+
+  // Reset step indicators
+  ;[1,2,3,4].forEach(i => {
+    document.getElementById(`dot-${i}`).className =
+      i === 1 ? 'step-dot active' : 'step-dot'
+    document.getElementById(`lbl-${i}`).className =
+      i === 1 ? 'active' : ''
+  })
+
+  // Clear all text and number inputs
+  document.querySelectorAll('input[type="number"],input[type="text"]')
+    .forEach(el => el.value = '')
+
+  // Reset all toggle buttons to default state
+  document.querySelectorAll('.toggle-btn')
+    .forEach(el => el.className = 'toggle-btn')
+
+  // Reset all CRT/airway/fasttrack buttons
+  document.querySelectorAll('.crt-btn')
+    .forEach(el => el.className = 'crt-btn')
+
+  // Hide fast track banner
+  document.getElementById('ftBanner').classList.remove('visible')
+
+  // Hide all error messages
+  document.querySelectorAll('.error-msg')
+    .forEach(el => el.classList.remove('visible'))
+
+  // Reset hospital selection
+  document.querySelectorAll('.hosp-btn').forEach(b => {
+    b.classList.remove('selected')
+  })
+
+  // Hide ETA section and disable submit
+  document.getElementById('etaSection').classList.remove('visible')
+  document.getElementById('btnSubmit').disabled = true
+
+  // Reset ETA display
+  document.getElementById('etaValue').textContent = '10'
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
   </script>
 
 </body>

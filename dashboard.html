@@ -6,23 +6,197 @@
   <title>Purviksha — Hospital Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    .vulnerable-badge {
-      display: inline-block;
-      background: #fff5f5;
-      border: 1px solid #fc8181;
-      color: #c53030;
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 14px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+
+    .stat-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+
+    .stat-card.active-filter { border-color: var(--cyan); box-shadow: 0 0 16px rgba(0,212,255,0.2); }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      font-family: var(--mono);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    .stat-card.total .stat-num   { color: var(--text); }
+    .stat-card.red .stat-num     { color: var(--red);    text-shadow: 0 0 12px rgba(255,61,107,0.4); }
+    .stat-card.yellow .stat-num  { color: var(--yellow); text-shadow: 0 0 12px rgba(255,210,0,0.4); }
+    .stat-card.green .stat-num   { color: var(--green);  text-shadow: 0 0 12px rgba(0,245,160,0.4); }
+    .stat-card.comp .stat-num    { color: var(--gray); }
+
+    .stat-card.red    { border-top: 2px solid var(--red); }
+    .stat-card.yellow { border-top: 2px solid var(--yellow); }
+    .stat-card.green  { border-top: 2px solid var(--green); }
+    .stat-card.comp   { border-top: 2px solid var(--gray); }
+
+    /* Filter bar */
+    .filter-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      backdrop-filter: blur(10px);
+    }
+
+    .filter-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-right: 4px;
+    }
+
+    .filter-btn {
+      padding: 7px 16px;
+      border-radius: 50px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-mid);
+      transition: all var(--transition);
+    }
+
+    .filter-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .filter-btn.active { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+    .filter-btn.f-red.active    { background: var(--red-dim);    border-color: var(--red);    color: var(--red); }
+    .filter-btn.f-yellow.active { background: var(--yellow-dim); border-color: var(--yellow); color: var(--yellow); }
+    .filter-btn.f-green.active  { background: var(--green-dim);  border-color: var(--green);  color: var(--green); }
+    .filter-btn.f-comp.active   { background: var(--gray-dim);   border-color: var(--gray);   color: var(--gray); }
+
+
+
+    /* Live alert banner */
+    .live-alert {
+      display: none;
+      background: var(--red-dim);
+      border: 1px solid rgba(255,61,107,0.4);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      animation: glow-pulse 1.5s infinite;
+    }
+
+    .live-alert-title {
+      font-family: var(--mono);
       font-size: 0.75rem;
+      color: var(--red);
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      margin-left: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
     }
+
+    /* Patient cards */
+    .patient-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(8px);
+      transition: all var(--transition);
+      animation: fadeInUp 0.3s ease forwards;
+    }
+
+    .patient-card:hover { border-color: var(--border-hi); }
+
+    .patient-card.RED {
+      border-color: rgba(255,61,107,0.3);
+      box-shadow: inset 4px 0 0 var(--red), 0 0 0 1px rgba(255,61,107,0.15);
+    }
+
+    .patient-card.YELLOW {
+      border-color: rgba(255,210,0,0.3);
+      box-shadow: inset 4px 0 0 var(--yellow), 0 0 0 1px rgba(255,210,0,0.15);
+    }
+
+    .patient-card.GREEN {
+      border-color: rgba(0,245,160,0.3);
+      box-shadow: inset 4px 0 0 var(--green), 0 0 0 1px rgba(0,245,160,0.15);
+    }
+
     .patient-card.completed {
-      border-left-color: #a0aec0;
-      opacity: 0.7;
+      opacity: 0.5;
+      filter: grayscale(0.5);
     }
-    .stat-card-completed {
-      border-top: 3px solid #718096!important;
+
+    /* Status action buttons */
+    .status-btn {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-mid);
+      transition: all var(--transition);
+    }
+
+    .status-btn.receive { border-color: rgba(0,212,255,0.3); color: var(--cyan); }
+    .status-btn.receive:hover { background: var(--cyan-dim); }
+    .status-btn.treat { border-color: rgba(0,245,160,0.3); color: var(--green); }
+    .status-btn.treat:hover { background: var(--green-dim); }
+
+    .conn-status {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .conn-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gray);
+    }
+
+    .conn-dot.live { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse-ring 2s infinite; }
+    .conn-dot.dead { background: var(--red); }
+
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
     }
   </style>
 </head>
@@ -31,89 +205,66 @@
   <div class="header">
     <div>
       <h1>🏥 Purviksha</h1>
-      <span id="hospitalName">Hospital Emergency Dashboard</span>
+      <span id="hospitalName">Emergency Dashboard</span>
     </div>
     <div style="margin-left: auto; display: flex; align-items: center; gap: 16px;">
-      <div id="connection-status" style="font-size: 0.85rem; color: #a0aec0;">
-        ⚪ Connecting...
+      <div class="conn-status" id="connStatus">
+        <div class="conn-dot" id="connDot"></div>
+        <span id="connText">Connecting...</span>
       </div>
-      <a href="index.html" style="color: #a0aec0; text-decoration: none; font-size: 0.9rem;">← Back</a>
+      <a href="index.html">← Back</a>
     </div>
   </div>
 
-  <div class="container" style="margin-top: 30px;">
+  <div class="container" style="margin-top: 28px;">
 
-    <!-- STATS BAR — 5 counters -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-                gap: 16px; margin-bottom: 24px;">
-
-      <div class="card" style="text-align: center; padding: 16px;">
-        <div style="font-size: 1.8rem; font-weight: 800;" id="count-total">0</div>
-        <div style="font-size: 0.8rem; color: #718096;">Active</div>
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card total" onclick="filterCards('ALL')">
+        <div class="stat-num" id="count-total">0</div>
+        <div class="stat-label">Active</div>
       </div>
-
-      <div class="card" style="text-align: center; padding: 16px;
-                               border-top: 3px solid #e53e3e;">
-        <div style="font-size: 1.8rem; font-weight: 800;
-                    color: #e53e3e;" id="count-red">0</div>
-        <div style="font-size: 0.8rem; color: #718096;">RED</div>
+      <div class="stat-card red" onclick="filterCards('RED')">
+        <div class="stat-num" id="count-red">0</div>
+        <div class="stat-label">Red</div>
       </div>
-
-      <div class="card" style="text-align: center; padding: 16px;
-                               border-top: 3px solid #d69e2e;">
-        <div style="font-size: 1.8rem; font-weight: 800;
-                    color: #d69e2e;" id="count-yellow">0</div>
-        <div style="font-size: 0.8rem; color: #718096;">YELLOW</div>
+      <div class="stat-card yellow" onclick="filterCards('YELLOW')">
+        <div class="stat-num" id="count-yellow">0</div>
+        <div class="stat-label">Yellow</div>
       </div>
-
-      <div class="card" style="text-align: center; padding: 16px;
-                               border-top: 3px solid #38a169;">
-        <div style="font-size: 1.8rem; font-weight: 800;
-                    color: #38a169;" id="count-green">0</div>
-        <div style="font-size: 0.8rem; color: #718096;">GREEN</div>
+      <div class="stat-card green" onclick="filterCards('GREEN')">
+        <div class="stat-num" id="count-green">0</div>
+        <div class="stat-label">Green</div>
       </div>
-
-      <div class="card stat-card-completed"
-           style="text-align: center; padding: 16px;">
-        <div style="font-size: 1.8rem; font-weight: 800;
-                    color: #718096;" id="count-completed">0</div>
-        <div style="font-size: 0.8rem; color: #718096;">Completed</div>
+      <div class="stat-card comp" onclick="filterCards('COMPLETED')">
+        <div class="stat-num" id="count-completed">0</div>
+        <div class="stat-label">Done</div>
       </div>
-
     </div>
 
     <!-- FILTER BAR -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;
-                             display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-      <span style="font-weight: 600; font-size: 0.9rem;">Filter:</span>
-      <button class="btn btn-primary filter-btn" onclick="filterCards('ALL')" data-filter="ALL">All</button>
-      <button class="btn filter-btn" onclick="filterCards('RED')" data-filter="RED"
-              style="background:#fed7d7; color:#c53030;">RED</button>
-      <button class="btn filter-btn" onclick="filterCards('YELLOW')" data-filter="YELLOW"
-              style="background:#fefcbf; color:#b7791f;">YELLOW</button>
-      <button class="btn filter-btn" onclick="filterCards('GREEN')" data-filter="GREEN"
-              style="background:#c6f6d5; color:#276749;">GREEN</button>
-      <button class="btn filter-btn" onclick="filterCards('COMPLETED')" data-filter="COMPLETED"
-              style="background:#e2e8f0; color:#4a5568;">Completed</button>
-      <button class="btn" onclick="loadAllRecords()"
-              style="margin-left: auto; background: #e2e8f0;">🔄 Refresh</button>
+    <div class="filter-bar">
+      <span class="filter-label">Filter</span>
+      <button class="filter-btn active" id="fbAll"      onclick="filterCards('ALL')">All</button>
+      <button class="filter-btn f-red"   id="fbRed"      onclick="filterCards('RED')">Red</button>
+      <button class="filter-btn f-yellow" id="fbYellow"  onclick="filterCards('YELLOW')">Yellow</button>
+      <button class="filter-btn f-green"  id="fbGreen"   onclick="filterCards('GREEN')">Green</button>
+      <button class="filter-btn f-comp"   id="fbComp"    onclick="filterCards('COMPLETED')">Completed</button>
+      <button class="btn filter-btn" onclick="filterCards('FAST_TRACK')"
+        data-filter="FAST_TRACK"
+        style="background:#2a0a2a; color:#c084fc;">⚡ Fast Track</button>
+     
     </div>
 
-    <!-- LIVE ALERT BANNER -->
-    <div id="live-alert" style="display: none; background: #fff5f5;
-         border: 2px solid #fc8181; border-radius: 10px; padding: 16px;
-         margin-bottom: 20px;">
-      <div style="font-weight: 700; color: #c53030; font-size: 1rem;">
-        🚨 NEW INCOMING PATIENT
-      </div>
-      <div id="live-alert-content" style="margin-top: 8px; color: #2d3748;"></div>
+    <!-- LIVE ALERT -->
+    <div class="live-alert" id="live-alert">
+      <div class="live-alert-title">🚨 New Incoming Patient</div>
+      <div id="live-alert-content" style="font-size: 0.88rem; color: var(--text-mid);"></div>
     </div>
 
-    <!-- PATIENT CARDS -->
+    <!-- PATIENT LIST -->
     <div id="patient-list">
-      <div style="text-align: center; padding: 40px; color: #718096;">
-        Loading patients...
-      </div>
+      <div class="grid-loading">Loading patients...</div>
     </div>
 
   </div>
@@ -122,45 +273,38 @@
   <script src="api.js"></script>
   <script>
     const HOSP_LABEL = 'purviksha_hospital_label'
+    let allRecords = [], currentFilter = 'ALL'
 
-    let allRecords    = []
-    let currentFilter = 'ALL'
-
-    // Show hospital name in header
     var hospName = localStorage.getItem(HOSP_LABEL)
-    if (hospName) {
-      document.getElementById('hospitalName').textContent =
-        '🏥 ' + hospName + ' — Emergency Dashboard'
-    }
+    if (hospName) document.getElementById('hospitalName').textContent = hospName + ' — Emergency Dashboard'
 
     const socket = io('https://purviksha-node.onrender.com')
 
     socket.on('connect', function() {
-      document.getElementById('connection-status').innerHTML = '🟢 Live — Connected'
-      document.getElementById('connection-status').style.color = '#68d391'
+      document.getElementById('connDot').className = 'conn-dot live'
+      document.getElementById('connText').textContent = 'Live'
+      document.getElementById('connText').style.color = 'var(--green)'
     })
 
     socket.on('disconnect', function() {
-      document.getElementById('connection-status').innerHTML = '🔴 Disconnected'
-      document.getElementById('connection-status').style.color = '#fc8181'
+      document.getElementById('connDot').className = 'conn-dot dead'
+      document.getElementById('connText').textContent = 'Disconnected'
+      document.getElementById('connText').style.color = 'var(--red)'
     })
 
     socket.on('new_triage_alert', function(data) {
-      showLiveAlert(data)
-      loadAllRecords()
+      showLiveAlert(data); loadAllRecords()
     })
 
     function showLiveAlert(data) {
-      var banner  = document.getElementById('live-alert')
-      var content = document.getElementById('live-alert-content')
-      content.innerHTML =
-        '<strong>' + (data.patient_name || 'Unknown') + '</strong>' +
-        ' &nbsp;|&nbsp; Age: ' + (data.age || '?') +
-        ' &nbsp;|&nbsp; <span class="badge badge-' + data.severity_level + '">' +
-        data.severity_level + '</span>' +
-        ' &nbsp;|&nbsp; ETA: ' + data.eta_minutes + ' min' +
-        (data.fast_track ? ' &nbsp;|&nbsp; ⚡ Fast Track: ' + data.fast_track_reason : '') +
-        (data.vulnerable_population ? ' &nbsp;|&nbsp; <span class="vulnerable-badge">⚠️ Vulnerable</span>' : '')
+      var banner = document.getElementById('live-alert')
+      document.getElementById('live-alert-content').innerHTML =
+        '<strong style="color:var(--text)">' + (data.patient_name || 'Unknown') + '</strong>' +
+        '&nbsp;·&nbsp;Age: ' + (data.age || '?') +
+        '&nbsp;·&nbsp;<span class="badge badge-' + data.severity_level + '">' + data.severity_level + '</span>' +
+        '&nbsp;·&nbsp;ETA: ' + data.eta_minutes + ' min' +
+        (data.fast_track ? '&nbsp;·&nbsp;⚡ ' + data.fast_track_reason : '') +
+        (data.vulnerable_population ? '&nbsp;·&nbsp;<span class="vulnerable-badge">⚠ Vulnerable</span>' : '')
       banner.style.display = 'block'
     }
 
@@ -168,48 +312,44 @@
       try {
         var records = await getAllTriage()
         allRecords = records || []
-        updateStats()
-        applyFilter()
+        updateStats(); applyFilter()
       } catch(e) {
         document.getElementById('patient-list').innerHTML =
-          '<div style="text-align:center; padding:40px; color:#718096;">' +
-          'Failed to load records. Is the backend running?</div>'
+          '<div class="grid-loading" style="color:var(--red)">Failed to load. Is the backend running?</div>'
       }
     }
 
-    function isActive(r) {
-      var s = r.status
-      return s === 'PENDING' || s === 'RECEIVED'
-    }
-
-    function isCompleted(r) {
-      return r.status === 'IN_TREATMENT'
-    }
+    function isActive(r)    { return r.status === 'PENDING' || r.status === 'RECEIVED' }
+    function isCompleted(r) { return r.status === 'IN_TREATMENT' }
 
     function updateStats() {
-      var active    = allRecords.filter(isActive)
-      var completed = allRecords.filter(isCompleted)
-
-      document.getElementById('count-total').textContent = active.length
-      document.getElementById('count-red').textContent =
-        active.filter(function(r) {
-          return (r.severity_level || r.severityLevel) === 'RED'
-        }).length
-      document.getElementById('count-yellow').textContent =
-        active.filter(function(r) {
-          return (r.severity_level || r.severityLevel) === 'YELLOW'
-        }).length
-      document.getElementById('count-green').textContent =
-        active.filter(function(r) {
-          return (r.severity_level || r.severityLevel) === 'GREEN'
-        }).length
-      document.getElementById('count-completed').textContent = completed.length
-    }
+  document.getElementById('count-total').textContent = allRecords.length
+  document.getElementById('count-red').textContent =
+    allRecords.filter(r =>
+      (r.severity_level || r.severityLevel) === 'RED').length
+  document.getElementById('count-yellow').textContent =
+    allRecords.filter(r =>
+      (r.severity_level || r.severityLevel) === 'YELLOW').length
+  document.getElementById('count-green').textContent =
+    allRecords.filter(r =>
+      (r.severity_level || r.severityLevel) === 'GREEN').length
+  document.getElementById('count-fasttrack').textContent =
+    allRecords.filter(r =>
+      r.fast_track === true || r.fastTrack === true).length
+}
 
     function filterCards(filter) {
-      currentFilter = filter
-      applyFilter()
-    }
+  currentFilter = filter
+  const filtered = filter === 'ALL'
+    ? allRecords
+    : filter === 'FAST_TRACK'
+    ? allRecords.filter(r => r.fast_track === true || r.fastTrack === true)
+    : allRecords.filter(r => {
+        const sev = r.severity_level || r.severityLevel
+        return sev === filter
+      })
+  renderCards(filtered)
+}
 
     function applyFilter() {
       var filtered
@@ -219,8 +359,7 @@
         filtered = allRecords.filter(isActive)
       } else {
         filtered = allRecords.filter(function(r) {
-          return isActive(r) &&
-            (r.severity_level || r.severityLevel) === currentFilter
+          return isActive(r) && (r.severity_level||r.severityLevel) === currentFilter
         })
       }
       renderCards(filtered)
@@ -229,100 +368,81 @@
     function renderCards(records) {
       var list = document.getElementById('patient-list')
       if (!records || records.length === 0) {
-        list.innerHTML =
-          '<div style="text-align:center; padding:40px; color:#718096;">' +
-          (currentFilter === 'COMPLETED' ? 'No completed patients yet.' : 'No patients found.') +
-          '</div>'
+        list.innerHTML = '<div class="grid-loading">' +
+          (currentFilter === 'COMPLETED' ? 'No completed patients yet.' : 'No patients found.') + '</div>'
         return
       }
       var order = { RED: 0, YELLOW: 1, GREEN: 2 }
-      records.sort(function(a, b) {
-        var sA = a.severity_level || a.severityLevel
-        var sB = b.severity_level || b.severityLevel
-        return (order[sA] !== undefined ? order[sA] : 3) -
-               (order[sB] !== undefined ? order[sB] : 3)
+      records.sort(function(a,b) {
+        var sA = a.severity_level||a.severityLevel, sB = b.severity_level||b.severityLevel
+        return (order[sA]!==undefined?order[sA]:3) - (order[sB]!==undefined?order[sB]:3)
       })
       list.innerHTML = records.map(buildCard).join('')
     }
 
     function buildCard(r) {
-      var severity        = r.severity_level || r.severityLevel
-      var status          = r.status
-      var id              = r._id || r.id
-      var score           = r.total_score !== undefined ? r.total_score :
-                            (r.totalScore !== undefined ? r.totalScore : 0)
-      var fastTrack       = r.fast_track || r.fastTrack
-      var fastTrackReason = r.fast_track_reason || r.fastTrackReason
-      var eta             = r.eta_minutes || r.etaMinutes
-      var vulnerable      = r.vulnerable_population || r.vulnerablePopulation
-      var time            = r.createdAt ? new Date(r.createdAt).toLocaleTimeString() : 'N/A'
-      var isComp          = status === 'IN_TREATMENT'
+      var severity  = r.severity_level || r.severityLevel
+      var status    = r.status
+      var id        = r._id || r.id
+      var score     = r.total_score !== undefined ? r.total_score : (r.totalScore !== undefined ? r.totalScore : 0)
+      var ft        = r.fast_track || r.fastTrack
+      var ftr       = r.fast_track_reason || r.fastTrackReason
+      var eta       = r.eta_minutes || r.etaMinutes
+      var vuln      = r.vulnerable_population || r.vulnerablePopulation
+      var isComp    = status === 'IN_TREATMENT'
+      var time      = r.createdAt ? new Date(r.createdAt).toLocaleTimeString() : '—'
 
-      var patientInfo
+      var patInfo
       if (r.patient_id && typeof r.patient_id === 'object') {
-        patientInfo = (r.patient_id.name || 'Unknown') +
-          (r.patient_id.age ? ', Age ' + r.patient_id.age : '')
-      } else {
-        patientInfo = r.patientId || 'Unknown'
-      }
+        patInfo = (r.patient_id.name||'Unknown') + (r.patient_id.age ? ', Age ' + r.patient_id.age : '')
+      } else { patInfo = r.patientId || 'Unknown' }
 
-      var vulnerableBadge = vulnerable
-        ? '<span class="vulnerable-badge">⚠️ Vulnerable</span>' : ''
-
-      var actionBtns = ''
+      var actions = ''
       if (!isComp) {
         if (status === 'PENDING') {
-          actionBtns = '<button class="btn" onclick="changeStatus(\'' + id + '\',\'RECEIVED\')" ' +
-            'style="padding:6px 14px; font-size:0.8rem; background:#e2e8f0;">Mark Received</button>'
+          actions = '<button class="status-btn receive" onclick="changeStatus(\'' + id + '\',\'RECEIVED\')">Mark Received</button>'
         } else if (status === 'RECEIVED') {
-          actionBtns = '<button class="btn btn-primary" onclick="changeStatus(\'' + id + '\',\'IN_TREATMENT\')" ' +
-            'style="padding:6px 14px; font-size:0.8rem;">Start Treatment</button>'
+          actions = '<button class="status-btn treat" onclick="changeStatus(\'' + id + '\',\'IN_TREATMENT\')">Start Treatment</button>'
         }
       } else {
-        actionBtns = '<span style="color:#38a169; font-size:0.85rem; font-weight:600;">✅ In Treatment</span>'
+        actions = '<span style="font-family:var(--mono);font-size:0.72rem;color:var(--green);">✓ In Treatment</span>'
       }
 
-      return '<div class="patient-card ' + severity + (isComp ? ' completed' : '') + '" id="card-' + id + '">' +
-        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
+      return '<div class="patient-card ' + severity + (isComp?' completed':'') + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">' +
           '<div>' +
             '<span class="badge badge-' + severity + '">' + severity + '</span>' +
-            (fastTrack ? '<span style="margin-left:8px; font-size:0.8rem; color:#c53030;">⚡ ' + fastTrackReason + '</span>' : '') +
-            vulnerableBadge +
-            '<div style="font-size:1rem; font-weight:700; margin-top:6px;">' + patientInfo + '</div>' +
+            (ft ? '<span style="margin-left:8px;font-family:var(--mono);font-size:0.72rem;color:var(--red);">⚡ '+ftr+'</span>' : '') +
+            (vuln ? '<span class="vulnerable-badge">⚠ Vulnerable</span>' : '') +
+            '<div style="font-size:1rem;font-weight:700;margin-top:8px;color:var(--text)">' + patInfo + '</div>' +
           '</div>' +
-          '<div style="text-align:right; font-size:0.8rem; color:#718096;">' +
-            '<div>Score: <strong>' + score + '</strong></div>' +
-            '<div>ETA: <strong>' + eta + ' min</strong></div>' +
+          '<div style="text-align:right;font-family:var(--mono);font-size:0.72rem;color:var(--text-dim);">' +
+            '<div>Score <span style="color:var(--text);font-weight:600">' + score + '</span></div>' +
+            '<div>ETA <span style="color:var(--text);font-weight:600">' + eta + ' min</span></div>' +
             '<div>' + time + '</div>' +
           '</div>' +
         '</div>' +
-        '<div style="display:flex; gap:12px; font-size:0.82rem; color:#4a5568; margin-bottom:12px; flex-wrap:wrap;">' +
-          '<span>Airway: <b>' + (r.airway_status || r.airwayStatus || '—') + '</b></span>' +
-          '<span>RR: <b>' + (r.respiratory_rate || r.respiratoryRate || '—') + '</b></span>' +
-          '<span>SpO2: <b>' + (r.spo2 || '—') + '%</b></span>' +
-          '<span>PR: <b>' + (r.pulse_rate || r.pulseRate || '—') + '</b></span>' +
-          '<span>SBP: <b>' + (r.sbp || '—') + '</b></span>' +
-          '<span>AVPU: <b>' + (r.avpu || '—') + '</b></span>' +
+        '<div style="display:flex;gap:14px;font-size:0.8rem;color:var(--text-dim);margin-bottom:14px;flex-wrap:wrap;font-family:var(--mono);">' +
+          '<span>RR <b style="color:var(--text)">' + (r.respiratory_rate||r.respiratoryRate||'—') + '</b></span>' +
+          '<span>SpO2 <b style="color:var(--text)">' + (r.spo2||'—') + '%</b></span>' +
+          '<span>PR <b style="color:var(--text)">' + (r.pulse_rate||r.pulseRate||'—') + '</b></span>' +
+          '<span>SBP <b style="color:var(--text)">' + (r.sbp||'—') + '</b></span>' +
+          '<span>AVPU <b style="color:var(--text)">' + (r.avpu||'—') + '</b></span>' +
+          '<span>Airway <b style="color:var(--text)">' + (r.airway_status||r.airwayStatus||'—') + '</b></span>' +
         '</div>' +
-        '<div style="display:flex; align-items:center; gap:12px;">' +
-          '<span style="font-size:0.85rem;">Status: <strong>' + status + '</strong></span>' +
-          actionBtns +
+        '<div style="display:flex;align-items:center;gap:12px;">' +
+          '<span style="font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);">STATUS: <span style="color:var(--text-mid)">' + status + '</span></span>' +
+          actions +
         '</div>' +
       '</div>'
     }
 
     async function changeStatus(id, newStatus) {
-      try {
-        await updateTriageStatus(id, newStatus)
-        await loadAllRecords()
-      } catch(e) {
-        alert('Failed to update status')
-      }
+      try { await updateTriageStatus(id, newStatus); await loadAllRecords() }
+      catch(e) { alert('Failed to update status') }
     }
 
-    window.onload = function() {
-      loadAllRecords()
-    }
+    window.onload = function() { loadAllRecords() }
   </script>
 
 </body>
