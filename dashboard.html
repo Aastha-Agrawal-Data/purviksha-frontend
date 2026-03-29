@@ -250,9 +250,7 @@
       <button class="filter-btn f-yellow" id="fbYellow"  onclick="filterCards('YELLOW')">Yellow</button>
       <button class="filter-btn f-green"  id="fbGreen"   onclick="filterCards('GREEN')">Green</button>
       <button class="filter-btn f-comp"   id="fbComp"    onclick="filterCards('COMPLETED')">Completed</button>
-      <button class="btn filter-btn" onclick="filterCards('FAST_TRACK')"
-        data-filter="FAST_TRACK"
-        style="background:#2a0a2a; color:#c084fc;">⚡ Fast Track</button>
+      <button class="btn filter-btn"      id="fbFast"    onclick="filterCards('FAST_TRACK')"style="background:#2a0a2a; color:#c084fc;">⚡ Fast Track</button>
      
     </div>
 
@@ -340,14 +338,40 @@
 
     function filterCards(filter) {
   currentFilter = filter
+
+  // 🔥 FIX: update button highlight
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active')
+  })
+
+  // map filter → button id
+  const map = {
+    'ALL': 'fbAll',
+    'RED': 'fbRed',
+    'YELLOW': 'fbYellow',
+    'GREEN': 'fbGreen',
+    'COMPLETED': 'fbComp'
+  }
+
+  if (filter === 'FAST_TRACK') {
+    // last button (no id assigned)
+    document.querySelector('[data-filter="FAST_TRACK"]').classList.add('active')
+  } else {
+    document.getElementById(map[filter])?.classList.add('active')
+  }
+
+  // 🔽 your existing filtering logic
   const filtered = filter === 'ALL'
     ? allRecords
     : filter === 'FAST_TRACK'
     ? allRecords.filter(r => r.fast_track === true || r.fastTrack === true)
+    : filter === 'COMPLETED'
+    ? allRecords.filter(r => r.status === 'IN_TREATMENT')
     : allRecords.filter(r => {
         const sev = r.severity_level || r.severityLevel
         return sev === filter
       })
+
   renderCards(filtered)
 }
 
