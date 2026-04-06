@@ -136,7 +136,7 @@ body > * { position: relative; z-index: 1; }
 
 /* ── Section Title ── */
 .section-title {
-  font-size: 0.72rem;
+  font-size: 0.95rem;
   font-family: var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -165,7 +165,7 @@ body > * { position: relative; z-index: 1; }
 }
 
 label {
-  font-size: 0.72rem;
+  font-size: 0.90rem;
   font-family: var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.1em;
